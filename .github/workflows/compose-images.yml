@@ -7,6 +7,11 @@ on:
         description: "Existing published stable tag containing Compose support"
         required: true
         type: string
+      image_only:
+        description: "Publish the GHCR image without Compose bundles when registry access is private"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -187,6 +192,7 @@ jobs:
           printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           python3 build/publication-tools/.github/scripts/compose_release.py publish-index --image "${REPOSITORY}:${VERSION}" --commit "$COMMIT" --amd64 "$(cat build/digests/amd64.txt)" --arm64 "$(cat build/digests/arm64.txt)" --github-output "$GITHUB_OUTPUT"
       - name: Verify anonymous pull access before publishing user bundles
+        if: ${{ !inputs.image_only }}
         env:
           GH_TOKEN: ''
         run: |
@@ -199,10 +205,12 @@ jobs:
           assert tool.inspect_index(os.environ['REPOSITORY'] + ':' + os.environ['VERSION'], os.environ['COMMIT'])['reuse'] == 'true'
           PY
       - name: Build digest-pinned deployment assets
+        if: ${{ !inputs.image_only }}
         env:
           IMAGE: ${{ steps.index.outputs.image }}
         run: python3 .github/scripts/compose_release.py bundle --directory build/compose-release --image "$IMAGE" --commit "$COMMIT"
       - name: Add assets without replacing source archives or existing bundles
+        if: ${{ !inputs.image_only }}
         run: |
           set -euo pipefail
           mkdir -p build/existing-assets

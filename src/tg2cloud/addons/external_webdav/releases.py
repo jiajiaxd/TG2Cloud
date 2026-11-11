@@ -93,7 +93,7 @@ def download(destination: Path) -> tuple[Path, dict]:
         if len(found) != 1:
             raise ValueError("稳定 Release 缺少唯一源码包／SHA256 清单；不使用未校验代码。")
         url = found[0].get("browser_download_url", "")
-        if url != f"https://github.com/LuoPoJunZi/TG2Cloud/releases/download/{release.tag}/{expected}":
+        if url != f"https://github.com/jiajiaxd/TG2Cloud/releases/download/{release.tag}/{expected}":
             raise ValueError("发布资源不属于预期仓库和 Tag。")
         urls[expected] = url
     sums = read_asset(urls["SHA256SUMS.txt"], 16384).decode("ascii")

@@ -79,7 +79,7 @@ def download(edition: str, destination: Path, *, tag=None, client=None) -> Path:
     urls = {}
     for expected in (name, "COMPOSE-SHA256SUMS.txt"):
         matches = [item for item in assets if item.get("name") == expected]
-        expected_url = f"https://github.com/LuoPoJunZi/TG2Cloud/releases/download/{release.tag}/{expected}"
+        expected_url = f"https://github.com/jiajiaxd/TG2Cloud/releases/download/{release.tag}/{expected}"
         if len(matches) != 1 or matches[0].get("browser_download_url") != expected_url:
             raise ValueError("正式 Compose 资产未齐或地址不属于当前仓库和 Tag")
         urls[expected] = expected_url

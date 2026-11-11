@@ -199,7 +199,7 @@ class OfflineToolsTests(unittest.TestCase):
         release = SimpleNamespace(tag="v" + fixtures.VERSION, version=fixtures.VERSION, commit="a" * 40)
         name = "TG2Cloud-" + release.tag + "-compose-openlist.tar.gz"
         metadata = {"tag_name": release.tag, "draft": False, "prerelease": False, "assets": [
-            {"name": item, "browser_download_url": "https://github.com/LuoPoJunZi/TG2Cloud/releases/download/" + release.tag + "/" + item}
+            {"name": item, "browser_download_url": "https://github.com/jiajiaxd/TG2Cloud/releases/download/" + release.tag + "/" + item}
             for item in (name, "COMPOSE-SHA256SUMS.txt")]}
         client = Mock()
         client.resolve.return_value, client.json.return_value = release, metadata

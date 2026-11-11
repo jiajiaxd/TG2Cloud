@@ -683,7 +683,7 @@ class MainBootstrapTests(unittest.TestCase):
         def fetch(request, *, timeout):
             self.assertEqual(timeout, 30)
             urls.append(request.full_url)
-            prefix = "https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/" + pin + "/"
+            prefix = "https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/" + pin + "/"
             self.assertTrue(request.full_url.startswith(prefix))
             return io.BytesIO(historical_file(pin, request.full_url.removeprefix(prefix)))
 

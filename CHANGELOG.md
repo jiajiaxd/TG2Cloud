@@ -1,5 +1,12 @@
 # 更新记录
 
+## TG2Cloud v1.5.9
+
+- 私聊附件的转存状态改用原消息上的 Telegram 表情回应。
+- `/status` 显示新任务的 WebDAV 保存路径、目录别名和分类规则。
+- 转存设置可按用户开启三类自动分类，使用 `视频`、`图片`、`其它` 三个目录。
+- 业务数据库迁移至 schema 4，已接收任务沿用接收时的保存目录。
+
 ## TG2Cloud v1.5.8
 
 版本日期：2026-11-08。[v1.5.8 正式版](https://github.com/LuoPoJunZi/TG2Cloud/releases/tag/v1.5.8)已发布；同标签原生双架构 CI、源码、共享镜像及两 Edition format 3 部署包已核验，详见[发布记录](docs/development/V158-ACCEPTANCE.md)。真实用户 VPS 实机验收尚未执行，由用户在发布后进行。
@@ -197,12 +204,13 @@
 
 发布后验收补充：用户已提供 v1.4.5 的 CloudDrive2 ARM64 升级与单独 WebDAV 写入日志，按[记录范围](https://github.com/LuoPoJunZi/TG2Cloud/blob/c7e0b4b7497fbfa258c752dcff4666d1e2011eae/docs/development/V145-ACCEPTANCE.md)保留；上段未验收说明是发布当时状态，不扩展到本版或其他场景。
 
-本文件是 TG2Cloud 的完整版本记录，保留 **v1.0.0 至 v1.5.8 共 39 个版本**分别新增、修复和调整的内容，不以 GitHub 当前保留的 Release 数量裁剪历史。下表用于速查，点击版本可阅读当时的详细改动与验收边界。
+本文件是 TG2Cloud 的完整版本记录，保留 **v1.0.0 至 v1.5.9 共 40 个版本**分别新增、修复和调整的内容，不以 GitHub 当前保留的 Release 数量裁剪历史。下表用于速查，点击版本可阅读当时的详细改动与验收边界。
 
 截至 **2026-10-21**，GitHub 保留 [v1.4.2](https://github.com/LuoPoJunZi/TG2Cloud/releases/tag/v1.4.2)、[v1.4.1](https://github.com/LuoPoJunZi/TG2Cloud/releases/tag/v1.4.1)、[v1.2.1](https://github.com/LuoPoJunZi/TG2Cloud/blob/c7e0b4b7497fbfa258c752dcff4666d1e2011eae/CHANGELOG.md#tg2cloud-v121) 三个 Release／Tag。v1.0.2 及其他版本的发布页和标签虽已移除，下面的变更记录仍完整保留；“当时已发布／测试通过”不代表今天仍可下载，也不代表当前所有环境已验收。
 
 | 版本 | 这一版主要做了什么 |
 | --- | --- |
+| [v1.5.9](#tg2cloud-v159) | Telegram 状态回应、保存目录展示和个人自动分类。 |
 | [v1.5.8](#tg2cloud-v158) | Compose 统一管理、凭据隔离、资源诊断及两种部署的安全升级边界。 |
 | [v1.5.7](#tg2cloud-v157) | 监听下载有限冷却恢复、来源提示和实际容器日志限额诊断。 |
 | [v1.5.6](#tg2cloud-v156) | 凭据标准输入、私密文件权限、容器日志轮转与独立监听健康诊断。 |

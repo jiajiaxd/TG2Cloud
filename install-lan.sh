@@ -148,7 +148,7 @@ files = (
 )
 try:
     for name in files:
-        url = "https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/" + commit + "/" + name
+        url = "https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/" + commit + "/" + name
         validate(url)
         with build_opener(Redirect()).open(Request(url, headers={"User-Agent": "TG2Cloud-LAN-bootstrap"}), timeout=30) as response:
             data = response.read(2 * 1024 * 1024 + 1)

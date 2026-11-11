@@ -55,11 +55,11 @@ import urllib.request
 from pathlib import Path
 
 root = Path(sys.argv[1])
-api = "https://api.github.com/repos/LuoPoJunZi/TG2Cloud"
+api = "https://api.github.com/repos/jiajiaxd/TG2Cloud"
 # Update this pin only after the helper revision passes its CI and review.
 # It is independent of the target Release, which need not contain the CLI.
 installer_commit = "9e103d68f48e36503a76b87770980ff292329e63"
-installer_version = "1.5.8"
+installer_version = "1.5.9"
 
 def validate_url(url):
     parsed = urllib.parse.urlsplit(url)
@@ -184,7 +184,7 @@ try:
         'src/tg2cloud/version.py',
     )
     for name in files:
-        data = fetch("https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/" + installer_commit + "/" + name)
+        data = fetch("https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/" + installer_commit + "/" + name)
         target = root / name
         target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         with target.open("xb") as output:

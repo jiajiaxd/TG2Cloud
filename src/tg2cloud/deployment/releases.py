@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 
 from tg2cloud.deployment.compatibility import literal_version
 
-API = "https://api.github.com/repos/LuoPoJunZi/TG2Cloud"
+API = "https://api.github.com/repos/jiajiaxd/TG2Cloud"
 TAG = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 SHA = re.compile(r"[0-9a-f]{40}")
 MAX_ARCHIVE = 100 * 1024 * 1024
@@ -135,7 +135,7 @@ class ReleaseClient:
     def download(self, release: Release, destination: Path) -> Path:
         archive = destination / (release.commit + ".tar.gz")
         try:
-            url = "https://codeload.github.com/LuoPoJunZi/TG2Cloud/tar.gz/" + release.commit
+            url = "https://codeload.github.com/jiajiaxd/TG2Cloud/tar.gz/" + release.commit
             with open_public(url, timeout=60) as response, archive.open("xb") as writer:
                 size = 0
                 while chunk := response.read(1024 * 1024):

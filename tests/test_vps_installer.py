@@ -392,7 +392,7 @@ class StandaloneBootstrapTests(unittest.TestCase):
                 return io.BytesIO(json.dumps(self.release).encode())
             if url == tgdep_releases.API + "/git/ref/tags/" + self.release["tag_name"]:
                 return io.BytesIO(json.dumps(self.item).encode())
-            prefix = "https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/" + self.pin + "/"
+            prefix = "https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/" + self.pin + "/"
             self.assertTrue(url.startswith(prefix), "helper must not use main or the payload commit")
             name = url.removeprefix(prefix)
             self.assertIn(name, json.loads((ROOT / "packaging/bootstrap-manifest.json").read_text())["files"])

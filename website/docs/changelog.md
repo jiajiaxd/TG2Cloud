@@ -1,6 +1,6 @@
 # 更新日志
 
-## TG2Cloud v1.5.9
+## TG2Cloud v1.5.10
 
 - 私聊附件的转存状态改用原消息上的 Telegram 表情回应。
 - `/status` 显示新任务的 WebDAV 保存路径、目录别名和分类规则。
@@ -71,13 +71,13 @@
 
 v1.4.3 新增可选分类、管理员通知、家庭成员配额和白名单诊断报告。分类／通知默认关闭，成员默认不限额；涉及业务 schema 2，升级前备份。见[转存](/usage/first-transfer/)、[个人配额](/usage/commands/)、[维护](/operations/maintenance/)和[备份](/operations/backup/)。
 
-这里记录 TG2Cloud **全部历史版本**做了什么，而非仅列出目前还能下载的 Release。v1.0.0 至 v1.5.9 共 40 个版本，逐版说明如下；更细的修复与兼容记录见[仓库完整更新记录](https://github.com/LuoPoJunZi/TG2Cloud/blob/main/CHANGELOG.md)。
+这里记录 TG2Cloud **全部历史版本**做了什么，而非仅列出目前还能下载的 Release。v1.0.0 至 v1.5.10 共 40 个版本，逐版说明如下；更细的修复与兼容记录见[仓库完整更新记录](https://github.com/LuoPoJunZi/TG2Cloud/blob/main/CHANGELOG.md)。
 
 可下载版本以 [GitHub Releases](https://github.com/LuoPoJunZi/TG2Cloud/releases) 实际列表为准，不固定“只保留几版”的数量。部分历史发布页和标签已移除，历史说明仍保留；下面的测试结论按当时版本理解，不表示今日仍能下载，也不替代当前环境验收。当前安装与下载见[下载与校验](/download/)。
 
 | 版本 | 这一版主要做了什么 |
 | --- | --- |
-| [v1.5.9](#tg2cloud-v1-5-9) | Telegram 状态回应、保存目录展示和个人自动分类。 |
+| [v1.5.10](#tg2cloud-v1-5-10) | Telegram 状态回应、保存目录展示和个人自动分类。 |
 | [v1.5.8](#tg2cloud-v1-5-8) | Compose 统一管理、凭据隔离、资源诊断及两种部署的安全升级边界。 |
 | [v1.5.7](#tg2cloud-v1-5-7) | 监听下载有限冷却恢复、来源提示和实际容器日志限额诊断。 |
 | [v1.5.6](#tg2cloud-v1-5-6) | 凭据、私密文件与容器日志加固，独立监听健康及有界异常诊断。 |

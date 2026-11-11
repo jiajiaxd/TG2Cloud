@@ -826,7 +826,7 @@ class EntryAndReleaseTests(unittest.TestCase):
 
     def test_bootstrap_banner_hides_commit_but_retains_identity(self):
         release = releases.core.Release("v1.4.6", "a" * 40)
-        prefix = "https://github.com/LuoPoJunZi/TG2Cloud/releases/download/v1.4.6/"
+        prefix = "https://github.com/jiajiaxd/TG2Cloud/releases/download/v1.4.6/"
         name = "TG2Cloud-v1.4.6-source.tar.gz"
         body = b"synthetic verified archive"
         digest = hashlib.sha256(body).hexdigest()

@@ -1,4 +1,4 @@
-## TG2Cloud v1.5.9
+## TG2Cloud v1.5.10
 
 - 私聊附件会在原消息上显示排队、下载、上传、完成或失败的表情回应。
 - `/status` 显示当前用户新任务的 WebDAV 保存路径、目录别名和分类规则。
@@ -6,4 +6,4 @@
 
 ## 镜像与升级
 
-Bot 镜像为 `ghcr.io/jiajiaxd/tg2cloud:1.5.9`。首次启动会将业务数据库迁移到 schema 4，保留任务、Bot Session 和配置。回退到旧镜像时使用升级前的数据库快照。
+Bot 镜像为 `ghcr.io/jiajiaxd/tg2cloud:1.5.10`。首次启动会将业务数据库迁移到 schema 4，保留任务、Bot Session 和配置。回退到旧镜像时使用升级前的数据库快照。

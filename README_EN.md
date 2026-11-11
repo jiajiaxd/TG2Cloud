@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/LuoPoJunZi/TG2Cloud/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/LuoPoJunZi/TG2Cloud?style=flat-square&amp;label=release&amp;color=1677ff"></a>
+  <a href="https://github.com/jiajiaxd/TG2Cloud/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/jiajiaxd/TG2Cloud?style=flat-square&amp;label=release&amp;color=1677ff"></a>
   <a href="https://github.com/LuoPoJunZi/TG2Cloud/actions/workflows/tests.yml"><img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/LuoPoJunZi/TG2Cloud/tests.yml?branch=main&amp;style=flat-square&amp;label=tests"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/LuoPoJunZi/TG2Cloud?style=flat-square&amp;color=22a06b"></a>
 </p>
@@ -15,7 +15,7 @@
 <p align="center">
   <a href="docs/VPS-INSTALL.md"><strong>Installation</strong></a> ·
   <a href="docs/README.md">Repository docs</a> ·
-  <a href="https://github.com/LuoPoJunZi/TG2Cloud/releases">Releases</a> ·
+  <a href="https://github.com/jiajiaxd/TG2Cloud/releases">Releases</a> ·
   <a href="https://tg2cloud.pages.dev/">Documentation website</a> ·
   <a href="README.md">简体中文</a>
 </p>
@@ -33,9 +33,9 @@ Optional [administrator monitoring and transfer plans](docs/LISTENING.md) are di
 - Regular downloads and large-file streaming with adaptive concurrency and disk protection.
 - Public HTTPS / trusted LAN deployment, storage recommendations and configuration-preserving upgrades.
 
-Current stable version: **[v1.5.8](https://github.com/LuoPoJunZi/TG2Cloud/releases/tag/v1.5.8)**, for Linux. See the [release and compatibility record](docs/development/V158-ACCEPTANCE.md).
+Current stable version: **[v1.5.10](https://github.com/jiajiaxd/TG2Cloud/releases/tag/v1.5.10)**, for Linux. See the [release and compatibility record](docs/development/V1510-ACCEPTANCE.md).
 
-v1.5.8 adds Compose management, credential isolation and resource diagnostics; see the [release and compatibility notes](docs/development/V158-ACCEPTANCE.md).
+v1.5.10 adds attachment reactions, save-directory status and personal media classification; see the [release and compatibility notes](docs/development/V1510-ACCEPTANCE.md).
 
 ## Getting started
 
@@ -61,7 +61,7 @@ Linux system requirements, public NAT prerequisites and platform limits are cove
 Prepare a domain pointing to the VPS and allow inbound TCP 80/443. Select CloudDrive2 or OpenList in the wizard:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh)
 ```
 
 The wizard collects information, checks the environment and asks for confirmation. Business code comes only from official stable Releases. For an existing instance, first append `--edition clouddrive2 --check` (use `openlist` for OpenList). This check does not upgrade. Then rerun the entry without arguments, choose the Edition and installation/upgrade, and confirm to also install the offline manager. Explicit flags remain compatible. See the [VPS guide](docs/VPS-INSTALL.md).
@@ -71,7 +71,7 @@ The wizard collects information, checks the environment and asks for confirmatio
 Without a public domain, use the separate LAN entry and enter the host's private IPv4. The Linux requirements above still apply; not every NAS OS is supported:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh)
 ```
 
 LAN HTTP is unencrypted: do not expose it through public port forwarding or use it to bypass public HTTPS. See the [LAN guide](docs/LAN-INSTALL.md).
@@ -98,7 +98,7 @@ Browse repository guides by topic; see the [full index](docs/README.md) and [rel
 | Family and mobile reading | [Bot family grants](docs/FAMILY-SHARING.md) · [Read-only external WebDAV](docs/external-webdav.md) |
 | Optional features | [Classification, notifications and quotas](docs/FEATURE-ENHANCEMENTS.md) · [Existing Nginx reuse](docs/DOCKER-NGINX.md) |
 | Operation and troubleshooting | [Management commands, logs and HTTPS maintenance](docs/OPERATIONS.md) · [Task recovery, verification and backup](docs/RECOVERY.md) |
-| Current maintenance | [v1.5.8 release and compatibility](docs/development/V158-ACCEPTANCE.md) |
+| Current maintenance | [v1.5.10 release and compatibility](docs/development/V1510-ACCEPTANCE.md) |
 | Uninstall | [Uninstall guide](docs/UNINSTALL.md) |
 | Development and tests | [Contributing](.github/CONTRIBUTING.md) · [Repository structure](docs/development/REPOSITORY.md) · [Linux development and tests](docs/development/DEVELOPMENT.md) |
 | Versions and releases | [Complete version history](CHANGELOG.md) · [Current release notes](RELEASE_NOTES.md) |

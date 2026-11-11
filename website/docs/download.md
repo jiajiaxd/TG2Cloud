@@ -1,6 +1,6 @@
 # 安装、下载与校验
 
-本文对应 **TG2Cloud v1.5.8**，核对日期：2026-11-08。[正式版](https://github.com/LuoPoJunZi/TG2Cloud/releases/tag/v1.5.8)源码、共享双架构镜像及两版 Compose 包已发布并核验。真实 VPS 验收由用户在发布后进行，范围见[本版记录](https://github.com/LuoPoJunZi/TG2Cloud/blob/main/docs/development/V158-ACCEPTANCE.md)。已有实例先备份，按原部署方式升级。
+本文对应 **TG2Cloud v1.5.10**，核对日期：2026-11-11。[fork 正式版](https://github.com/jiajiaxd/TG2Cloud/releases/tag/v1.5.10)提供源码包和 SHA256 校验清单。真实 VPS 更新进度见[本版记录](https://github.com/jiajiaxd/TG2Cloud/blob/main/docs/development/V1510-ACCEPTANCE.md)。
 
 业务部署只使用正式稳定源码，部署平台为 Linux。已有外部 WebDAV 工具须在主菜单 15 的子菜单选择 8 升级，才会使用新向导。
 
@@ -9,7 +9,7 @@
 在符合[部署前准备](/guide/prerequisites/)的 Debian / Ubuntu Linux 主机上，以 root 运行；需要 Python 3.10+、curl、CA 证书和可交互终端：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh)
 ```
 
 向导选择 Edition：未安装时收集信息并展示计划；已有可核验实例进入管理菜单，选择“安装与升级”。确认前不执行安装，升级默认保留已有配置和数据。完整过程见[从零部署](/guide/quick-start/)与[升级说明](/operations/update/)。
@@ -17,17 +17,17 @@ bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/ins
 只做 CloudDrive2 预检：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition clouddrive2 --check
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition clouddrive2 --check
 ```
 
 OpenList 先检查，再按需要进入安装 / 升级向导：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition openlist --check
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition openlist --check
 ```
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition openlist
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition openlist
 ```
 
 `--check` 是只读预检，不代表安装、升级或 WebDAV 验收完成。旧 TG115、未知代码、部分安装和身份不符时停止，不添加强制覆盖参数。
@@ -35,7 +35,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/ins
 ## 可信内网 / NAS 安装
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh)
 ```
 
 按向导输入主机实际拥有的私有 IPv4，不需要域名或 ACME。HTTP 不加密，不允许把内网管理入口转发到公网；要求本机 rootful Docker 28+，不保证兼容任意 NAS 系统。实际管理地址由向导显示，详见[内网指南](https://github.com/LuoPoJunZi/TG2Cloud/blob/main/docs/LAN-INSTALL.md)。
@@ -57,8 +57,8 @@ tg2cloud
 仅查看已有凭据，也可在自己的私有交互终端运行：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition clouddrive2 --show-credentials
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition openlist --show-credentials
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition clouddrive2 --show-credentials
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition openlist --show-credentials
 ```
 
 每项确认后才显示，不安装、升级、改密或重建；已保存的 OpenList 初始化密码可能已在后台修改。不要截图、录屏或公开分享。
@@ -77,8 +77,8 @@ tg2cloud uninstall --edition all --check
 
 | 文件 | 用途 |
 | --- | --- |
-| [TG2Cloud-v1.5.8-source.tar.gz](https://github.com/LuoPoJunZi/TG2Cloud/releases/download/v1.5.8/TG2Cloud-v1.5.8-source.tar.gz) | 同标签源码，包含两 Edition 运行资源 |
-| [SHA256SUMS.txt](https://github.com/LuoPoJunZi/TG2Cloud/releases/download/v1.5.8/SHA256SUMS.txt) | 对应该次 Actions 源码包的校验清单 |
+| [TG2Cloud-v1.5.10-source.tar.gz](https://github.com/jiajiaxd/TG2Cloud/releases/download/v1.5.10/TG2Cloud-v1.5.10-source.tar.gz) | 同标签源码，包含两 Edition 运行资源 |
+| [SHA256SUMS.txt](https://github.com/jiajiaxd/TG2Cloud/releases/download/v1.5.10/SHA256SUMS.txt) | 对应该次 Actions 源码包的校验清单 |
 
 将两个文件保存到同一目录，在 Linux 中执行：
 
@@ -88,7 +88,7 @@ sha256sum -c SHA256SUMS.txt
 
 本版源码包 SHA256 为 `1018c0e7c2029d081393916c16347b798436c1b93b807dec186b9871a064915e`。校验不一致时停止，不混用其他版本的清单。校验和不是数字签名。
 
-[本版 Release](https://github.com/LuoPoJunZi/TG2Cloud/releases/tag/v1.5.8) · [最新 Release](https://github.com/LuoPoJunZi/TG2Cloud/releases/latest) · [全部 Releases](https://github.com/LuoPoJunZi/TG2Cloud/releases)
+[本版 Release](https://github.com/jiajiaxd/TG2Cloud/releases/tag/v1.5.10) · [最新 Release](https://github.com/jiajiaxd/TG2Cloud/releases/latest) · [全部 Releases](https://github.com/jiajiaxd/TG2Cloud/releases)
 
 ### 在线入口与源码资产的区别
 

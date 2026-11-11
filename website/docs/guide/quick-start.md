@@ -17,13 +17,13 @@
 公网 VPS：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh)
 ```
 
 可信内网 / NAS：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh)
 ```
 
 选择 `1. CloudDrive2` 或 `2. OpenList`。未安装时，确认进入安装向导；已有实例则打开[本地管理菜单](/operations/maintenance/)，不要将升级当成重新安装。

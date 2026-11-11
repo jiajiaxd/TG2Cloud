@@ -2,7 +2,7 @@
 
 在自己的 Debian / Ubuntu Linux 主机上运行向导，选择 CloudDrive2 或 OpenList。新装先收集信息、预检和确认；已有标准实例保留配置升级。公网管理使用 HTTPS；可信内网和独立 Compose 分别使用[内网入口](LAN-INSTALL.md)与[Compose 教程](COMPOSE.md)。
 
-当前入口固定辅助代码 A `9e103d68f48e36503a76b87770980ff292329e63`；业务只安装正式稳定 Release。实际版本、CI、资产和未执行的实机项目见[当前发布记录](development/V158-ACCEPTANCE.md)，不在本教程累积旧版 pin。
+当前入口固定辅助代码 A `60862325931197915ea8058261cca0f5f74599b3`；业务只安装正式稳定 Release。实际版本、CI、资产和未执行的实机项目见[当前发布记录](development/V1510-ACCEPTANCE.md)，不在本教程累积旧版 pin。
 
 <a id="公网-nat-的已知限制与待发布修复"></a>
 
@@ -40,7 +40,7 @@ v1.3.1 的[外部 WebDAV](external-webdav.md) 是独立可选入口，主安装�
 以 root 登录 VPS，在 Bash 可交互终端运行（需 Python 3.10+、curl 和系统 CA 证书）：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh)
 ```
 
 不带参数时先选择 Edition，随后识别全新安装或已有实例。脚本不会在收集信息、预检及最终确认之前安装软件或修改实例。当前仍建议先在专用测试 VPS 使用。
@@ -50,25 +50,25 @@ HTTPS 预检还需要宿主机的 `ss`、`ip`（`iproute2`）、`getent`、`floc
 只检查 CloudDrive2，不安装／升级：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition clouddrive2 --check
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition clouddrive2 --check
 ```
 
 检查通过后，再运行 CloudDrive2 安装／升级向导：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition clouddrive2
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition clouddrive2
 ```
 
 只检查 OpenList，不安装／升级：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition openlist --check
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition openlist --check
 ```
 
 检查通过后，再运行 OpenList 安装／升级向导：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition openlist
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition openlist
 ```
 
 两套命令只操作所选 Edition；全新 VPS 收集信息后安装，完整已有实例保留配置升级。OpenList 脚本实机验收仍暂缓，请先在专用测试 VPS 验证；`--check` 通过不等于安装或升级成功。
@@ -78,7 +78,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/ins
 这类命令会立即执行从仓库下载的代码，只有信任仓库和维护者时才使用。不希望直接运行远程代码时，可先下载、检查，再运行：
 
 ```bash
-curl -fSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh -o tg2cloud-install.sh
+curl -fSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh -o tg2cloud-install.sh
 less tg2cloud-install.sh
 bash ./tg2cloud-install.sh --edition clouddrive2 --check
 bash ./tg2cloud-install.sh --edition clouddrive2
@@ -215,8 +215,8 @@ bash ./install.sh --edition openlist --verify
 首次 HTTPS 失败前生成的秘密已经由安装器保存到 VPS `.env`。v1.1.5 向导在 HTTPS 续做成功后再次提供逐项确认显示；也可单独查看已有凭据，不安装、不升级、不修复 HTTPS、不重置密码：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition openlist --show-credentials
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh) --edition clouddrive2 --show-credentials
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition openlist --show-credentials
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh) --edition clouddrive2 --show-credentials
 ```
 
 每项默认不显示，仅在确认后写入当前私有终端，不进入普通日志。OpenList 显示的是保存的初始化管理员密码；如果后来在管理页改过密码，这不是当前密码。请避免旁观或录屏，不要把完整 `.env` 贴进日志、聊天或 Issue。该参数不能与 `--check`、`--configure-https` 或 `--verify` 组合。

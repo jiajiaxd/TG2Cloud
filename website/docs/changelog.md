@@ -2,6 +2,8 @@
 
 ## TG2Cloud v1.5.10
 
+2026-11-11，[fork 正式版](https://github.com/jiajiaxd/TG2Cloud/releases/tag/v1.5.10)已发布。发布检查见[本版记录](https://github.com/jiajiaxd/TG2Cloud/blob/main/docs/development/V1510-ACCEPTANCE.md)。
+
 - 私聊附件的转存状态改用原消息上的 Telegram 表情回应。
 - `/status` 显示新任务的 WebDAV 保存路径、目录别名和分类规则。
 - 转存设置可按用户开启三类自动分类，使用 `视频`、`图片`、`其它` 三个目录。

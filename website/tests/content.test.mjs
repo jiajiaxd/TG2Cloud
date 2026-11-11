@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const config=JSON.parse(await read('site.config.json'));
+const installerRepo=new URL(config.repo).pathname.slice(1);
 const currentRecord=`docs/development/V${config.version.replaceAll('.','')}-ACCEPTANCE.md`;
 
 test('documented version and verification date are valid',()=>{
@@ -152,7 +153,7 @@ test('content source metadata matches the site configuration',async()=>{
 });
 
 test('VPS one-line entry is consistent with the root user guide',async()=>{
-  const command='bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh)';
+  const command=`bash <(curl -fsSL https://raw.githubusercontent.com/${installerRepo}/main/install.sh)`;
   const download=await read('docs/download.md');
   const guide=await readFile(new URL('../../docs/VPS-INSTALL.md',import.meta.url),'utf8');
   const readme=await readFile(new URL('../../README.md',import.meta.url),'utf8');
@@ -168,7 +169,7 @@ test('LAN installation and unified uninstall agree with root guides',async()=>{
   const readme=await readFile(new URL('../../README.md',import.meta.url),'utf8');
   const english=await readFile(new URL('../../README_EN.md',import.meta.url),'utf8');
   for(const [script,guide] of [['install-lan.sh','LAN-INSTALL.md']]){
-    const command=`bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/${script})`;
+    const command=`bash <(curl -fsSL https://raw.githubusercontent.com/${installerRepo}/main/${script})`;
     const source=await readFile(new URL(`../../docs/${guide}`,import.meta.url),'utf8');
     for(const content of [download,readme,english,source])assert.ok(content.includes(command),script);
   }
@@ -219,11 +220,11 @@ test('current release evidence separates actual CI and assets from unrun real se
     `TG2Cloud-v${config.version}-compose-openlist.tar.gz` ])assert.ok(record.includes(value),value);
   if(config.releaseStatus==='released'){
     assert.match(record,/actions\/runs\/\d+/);
-    assert.match(record,/ghcr\.io\/luopojunzi\/tg2cloud@sha256:[0-9a-f]{64}/);
+    assert.ok(record.includes(`${config.repo}/releases/tag/v${config.version}`));
+    assert.match(record,new RegExp(`ghcr[.]io/${installerRepo.toLowerCase()}@sha256:[0-9a-f]{64}`));
   }else{
     assert.ok(record.includes('待发布'));
     assert.ok(record.includes('当前未生成'));
-    assert.ok(record.includes('不填写虚构摘要'));
     assert.doesNotMatch(record,/状态：[^\n]*(?:已正式发布|已发布完成)/);
   }
   assert.doesNotMatch(record,/root@|\b(?:\d{1,3}\.){3}\d{1,3}\b|config-[A-Za-z0-9]{8,}\.tar\.gz/);

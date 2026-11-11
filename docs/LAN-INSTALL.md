@@ -48,7 +48,7 @@ v1.3.2 的默认交互采用新版中文提示：WebDAV 密码回车生成 8 位
 目标 Linux 能联网，并已具备上述运行条件时，以 root 执行：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh)
 ```
 
 无需预先下载完整项目。向导先选择 Edition，首次安装手工填写运行脚本的 Linux 内网 IPv4，再收集 Telegram 和专用 WebDAV 信息、检查容量并展示计划。最终确认默认 **N**；确认前不安装软件、不写入实例或内网模式记录。原 VPS 向导的域名/HTTPS 步骤不会出现在本入口中。
@@ -56,14 +56,14 @@ bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/ins
 分别选择 CloudDrive2 或 OpenList：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh) --edition clouddrive2
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh) --edition openlist
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh) --edition clouddrive2
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh) --edition openlist
 ```
 
 首次只读预检需明确 Edition 和本机地址；例如：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh) --edition clouddrive2 --lan-ip 192.168.26.5 --check
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh) --edition clouddrive2 --lan-ip 192.168.26.5 --check
 ```
 
 示例 IP 必须换成自己的 Linux / 虚拟机地址，不能填写另一台设备的地址。后续升级复用已保存信息与 IP，不必重复输入。下载失败直接停止，不回退到 main/RC 或其他源；在线引导的私有临时源码目录退出时清理，不清理用户的运行数据。
@@ -140,8 +140,8 @@ CloudDrive2 内网管理页：http://192.168.26.5:19798
 OpenList 对应端口是 `5244`，地址采用本人输入并通过检查的 IP。尚未完成管理页配置时，写入验收选择 **N**；之后可单独运行在线验收，不需要重新安装：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh) --edition clouddrive2 --verify
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh) --edition openlist --verify
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh) --edition clouddrive2 --verify
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh) --edition openlist --verify
 ```
 
 另行请求 WebDAV 写入验收：

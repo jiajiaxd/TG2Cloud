@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/LuoPoJunZi/TG2Cloud/releases/latest"><img alt="最新版本" src="https://img.shields.io/github/v/release/LuoPoJunZi/TG2Cloud?style=flat-square&amp;label=release&amp;color=1677ff"></a>
+  <a href="https://github.com/jiajiaxd/TG2Cloud/releases/latest"><img alt="最新版本" src="https://img.shields.io/github/v/release/jiajiaxd/TG2Cloud?style=flat-square&amp;label=release&amp;color=1677ff"></a>
   <a href="https://github.com/LuoPoJunZi/TG2Cloud/actions/workflows/tests.yml"><img alt="自动测试" src="https://img.shields.io/github/actions/workflow/status/LuoPoJunZi/TG2Cloud/tests.yml?branch=main&amp;style=flat-square&amp;label=tests"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/github/license/LuoPoJunZi/TG2Cloud?style=flat-square&amp;color=22a06b"></a>
 </p>
@@ -15,7 +15,7 @@
 <p align="center">
   <a href="docs/VPS-INSTALL.md"><strong>安装指南</strong></a> ·
   <a href="docs/README.md">仓库文档</a> ·
-  <a href="https://github.com/LuoPoJunZi/TG2Cloud/releases">版本下载</a> ·
+  <a href="https://github.com/jiajiaxd/TG2Cloud/releases">版本下载</a> ·
   <a href="https://tg2cloud.pages.dev/">文档网站</a> ·
   <a href="README_EN.md">English</a>
 </p>
@@ -33,9 +33,9 @@ Telegram → TG2Cloud → rclone → CloudDrive2 / OpenList WebDAV → 你的云
 - 普通下载与大文件流式传输，配合动态并发和磁盘保护。
 - 公网 HTTPS / 可信内网部署，提供磁盘预算推荐和保留配置升级。
 
-当前稳定版 **[v1.5.8](https://github.com/LuoPoJunZi/TG2Cloud/releases/tag/v1.5.8)**，支持 Linux；发布与兼容范围见[本版记录](docs/development/V158-ACCEPTANCE.md)。
+当前稳定版 **[v1.5.10](https://github.com/jiajiaxd/TG2Cloud/releases/tag/v1.5.10)**，支持 Linux；发布与兼容范围见[本版记录](docs/development/V1510-ACCEPTANCE.md)。
 
-v1.5.8：Compose 统一管理、凭据隔离和资源诊断；[发布与兼容说明](docs/development/V158-ACCEPTANCE.md)。
+v1.5.10 增加附件状态回应、保存路径展示与个人自动分类；[发布与兼容说明](docs/development/V1510-ACCEPTANCE.md)。
 
 ## 开始使用
 
@@ -61,7 +61,7 @@ Linux 的系统要求、公网 NAT 条件与平台限制见[安装指南](docs/V
 准备指向 VPS 的域名，并允许 TCP 80/443；向导中选择 CloudDrive2 或 OpenList：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install.sh)
 ```
 
 脚本先收集信息、检查并等待确认，业务代码只安装正式稳定 Release。已有实例建议先追加 `--edition clouddrive2 --check`（OpenList 使用 `openlist`）；只读检查不执行升级。核对后重新运行不带参数的入口，选择 Edition 和“安装 / 升级”并确认，可同时获得离线管理命令；显式参数仍兼容。完整参数见 [VPS 指南](docs/VPS-INSTALL.md)。
@@ -71,7 +71,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/ins
 无公网域名时使用独立入口，按提示填写本机私有 IPv4；仅支持符合上述环境的 Linux 主机，不保证所有 NAS 系统兼容：
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/LuoPoJunZi/TG2Cloud/main/install-lan.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jiajiaxd/TG2Cloud/main/install-lan.sh)
 ```
 
 内网 HTTP 不加密，禁止公网端口转发；不要用此入口绕过公网 HTTPS。详见[内网指南](docs/LAN-INSTALL.md)。
@@ -98,7 +98,7 @@ tg2cloud uninstall --edition all --check
 | 家庭与手机读取 | [Bot 家人授权](docs/FAMILY-SHARING.md) · [外部 WebDAV 只读入口](docs/external-webdav.md) |
 | 可选功能 | [文件分类、通知与配额](docs/FEATURE-ENHANCEMENTS.md) · [复用已有 Nginx](docs/DOCKER-NGINX.md) |
 | 运行与故障排查 | [管理命令、日志与 HTTPS 维护](docs/OPERATIONS.md) · [任务恢复、验证与备份](docs/RECOVERY.md) |
-| 当前维护 | [v1.5.8 发布与兼容](docs/development/V158-ACCEPTANCE.md) |
+| 当前维护 | [v1.5.10 发布与兼容](docs/development/V1510-ACCEPTANCE.md) |
 | 卸载 | [卸载指南](docs/UNINSTALL.md) |
 | 开发与测试 | [贡献指南](.github/CONTRIBUTING.md) · [仓库结构](docs/development/REPOSITORY.md) · [Linux 开发与测试](docs/development/DEVELOPMENT.md) |
 | 版本与发布 | [所有版本分别做了什么](CHANGELOG.md) · [当前发布说明](RELEASE_NOTES.md) |

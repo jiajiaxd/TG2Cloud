@@ -4,7 +4,7 @@
 
 只清理核验属于 TG2Cloud 的所选资源，不删除云端文件，不卸载系统 Docker / Nginx，不接管其他项目或独立 Compose。另一 Edition、共享代理和外部 WebDAV 的依赖必须先处理。完整卸载不等于还原整个 Linux 系统。
 
-当前在线入口固定辅助 A `9e103d68f48e36503a76b87770980ff292329e63`；不另设卸载 Shell 下载命令。核验依据见[当前发布记录](development/V158-ACCEPTANCE.md)。
+当前在线入口固定辅助 A `60862325931197915ea8058261cca0f5f74599b3`；不另设卸载 Shell 下载命令。核验依据见[当前发布记录](development/V1510-ACCEPTANCE.md)。
 
 ## v1.3.2 统一菜单与最后实例清理
 

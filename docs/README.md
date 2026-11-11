@@ -15,6 +15,8 @@
 
 v1.5.8 的 Compose 统一菜单、凭据隔离与资源保护见 [Compose 安全维护](COMPOSE-MANAGEMENT.md)；发布状态及未验收范围见[本版记录](development/V158-ACCEPTANCE.md)。
 
+- [v1.5.10 fork 发布记录](development/V1510-ACCEPTANCE.md)
+
 ## 使用与可选功能
 
 - [Bot 使用、菜单和命令](BOT-USAGE.md)：发送文件、查看任务、失败重试和恢复。

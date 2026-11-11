@@ -895,11 +895,11 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
         self.db.update(1, remote_final_path="sample.bin")
         self.assertEqual(await self.service._choose_remote_final("sample.bin", 2), "sample (task-2).bin")
 
-    async def test_completed_state_survives_notification_cancellation(self) -> None:
+    async def test_private_transfer_completion_does_not_send_notification(self) -> None:
         task = self.task(local=True)
         self.service._notify = AsyncMock(side_effect=asyncio.CancelledError)
-        with self.assertRaises(asyncio.CancelledError):
-            await self.service._upload_one(task["id"])
+        await self.service._upload_one(task["id"])
+        self.service._notify.assert_not_awaited()
         self.assertEqual(self.db.get(1)["state"], "completed")
         self.assertFalse(Path(task["local_path"]).exists())
 

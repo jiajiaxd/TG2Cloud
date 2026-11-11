@@ -14,6 +14,7 @@ from tg2cloud.domain.errors import (
 from tg2cloud.domain.naming import (
     safe_file_name,
 )
+from tg2cloud.monitoring.notifications import notify_listener_task
 from tg2cloud.storage.rclone import MoveUncertainError
 
 
@@ -41,17 +42,20 @@ async def _choose_remote_final(self, file_name: str, task_id: int) -> str:
     return candidate
 
 
-async def _hold_transfer_failure(self, task_id: int, exc: Exception, *, stream: bool = False) -> bool:
+async def _hold_transfer_failure(self, task: dict[str, Any], exc: Exception, *, stream: bool = False) -> bool:
     kind = failure_kind(exc)
     if kind not in {"remote_conflict", "authentication", "permission", "rate_limited"}:
         return False
+    task_id = task["id"]
     self.db.transition(
         task_id, "download_failed" if stream else "upload_failed_retained",
         error=safe_failure(exc), failure_kind=kind,
         verification_method=None, verified_at=None,
         wait_reason="已停止自动重试；请查看任务详情选择恢复操作", next_retry_at=0,
     )
-    await self._notify(f"⚠️ 任务 #{task_id} 需要处理\n{safe_failure(exc)}\n使用 /task {task_id} 查看详情。")
+    await notify_listener_task(
+        self, task, f"⚠️ 任务 #{task_id} 需要处理\n{safe_failure(exc)}\n使用 /task {task_id} 查看详情。"
+    )
     return True
 
 
@@ -103,7 +107,8 @@ async def _complete_cloud_receive(
         wait_reason=None,
         next_retry_at=0,
     )
-    await self._notify(
+    await notify_listener_task(
+        self, task,
         f"✅ Bot 传输已完成，{self.destination_label} 已接收\n"
         f"任务：#{task_id}\n"
         f"文件：{task['file_name']}\n"
@@ -235,7 +240,8 @@ async def _upload_one(self, task_id: int) -> None:
             wait_reason="本地文件不完整，已自动重新排队下载",
             next_retry_at=0,
         )
-        await self._notify(
+        await notify_listener_task(
+            self, task,
             f"⚠️ 本地文件校验失败，已自动重新下载\n任务：#{task_id}"
         )
         return
@@ -290,13 +296,14 @@ async def _upload_one(self, task_id: int) -> None:
                     verification_method=None, verified_at=None,
                     wait_reason="OpenList 改名结果未确认；保留本地和远端文件",
                 )
-                await self._notify(
+                await notify_listener_task(
+                    self, task,
                     f"❌ OpenList 改名结果未确认，任务 #{task_id} 已停止自动重试。"
                     "本地文件已保留，请先核对远端临时文件与目标文件。"
                 )
                 return
             except Exception as exc:  # noqa: BLE001 - retry external I/O
-                if await self._hold_transfer_failure(task_id, exc):
+                if await self._hold_transfer_failure(task, exc):
                     return
                 self.recent_upload_errors.append(time.time())
                 self.log.warning(
@@ -314,7 +321,8 @@ async def _upload_one(self, task_id: int) -> None:
             "upload_failed_retained",
             error="上传重试次数已经用完；本地完整文件已保留",
         )
-        await self._notify(
+        await notify_listener_task(
+            self, task,
             f"❌ 上传失败但本地文件已保留\n任务：#{task_id}\n"
             f"修复 {self.destination_label} 后使用 /retry 重试。"
         )

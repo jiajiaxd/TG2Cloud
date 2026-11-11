@@ -14,6 +14,7 @@ from tg2cloud.domain.errors import (
 from tg2cloud.domain.naming import (
     safe_file_name,
 )
+from tg2cloud.monitoring.notifications import notify_listener_task
 from tg2cloud.storage.policies import policy_for
 from tg2cloud.storage.rclone import MoveUncertainError
 
@@ -181,7 +182,8 @@ async def _stream_one(self, task_id: int) -> None:
                     verification_method=None, verified_at=None,
                     wait_reason="OpenList 改名结果未确认；停止自动重试并保留远端现场",
                 )
-                await self._notify(
+                await notify_listener_task(
+                    self, task,
                     f"❌ OpenList 改名结果未确认，任务 #{task_id} 已停止自动重试。"
                     "请先核对远端临时文件与目标文件。"
                 )
@@ -190,7 +192,7 @@ async def _stream_one(self, task_id: int) -> None:
                 if stream is not None:
                     await stream.abort()
                     stream = None
-                if await self._hold_transfer_failure(task_id, exc, stream=True):
+                if await self._hold_transfer_failure(task, exc, stream=True):
                     return
                 # Unknown remote results are reconciled on the next attempt;
                 # never discard a possibly recoverable staging object here.
@@ -222,7 +224,8 @@ async def _stream_one(self, task_id: int) -> None:
                   + "；使用 /retry 可重新开始",
             wait_reason=None,
         )
-        await self._notify(
+        await notify_listener_task(
+            self, task,
             f"❌ 流式传输失败\n任务：#{task_id}\n"
             "大文件不会占用本地任务额度，可使用 /retry 重新开始。"
         )

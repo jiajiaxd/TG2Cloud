@@ -14,6 +14,7 @@ from tg2cloud.storage.rclone import RcloneClient
 from tg2cloud.telegram.client import create_client
 from tg2cloud.telegram.commands import CommandHandlers
 from tg2cloud.telegram.handlers import TelegramHandlers
+from tg2cloud.telegram.reactions import MessageReactions
 from tg2cloud.telegram.views import TaskViews
 from tg2cloud.transfer.ports import Destination, MediaSource
 from tg2cloud.transfer.service import TaskService
@@ -32,9 +33,11 @@ class TransferService(TaskService, TelegramHandlers, CommandHandlers, TaskViews)
                                                  日志=settings.log_dir, 配置=settings.rclone_config_path.parent))
         from tg2cloud.listening.service import Listener
         self.listener = Listener(self)
+        self.reactions = MessageReactions(self)
         self._register_handlers()
 
     async def start(self) -> None:
+        reaction_cursor = self.db.latest_task_event_id()
         recovered = self.db.recover(self.settings.download_dir)
         self.log.info("重启恢复结果：%s", recovered)
         await self.client.start(bot_token=self.settings.bot_token)
@@ -49,6 +52,7 @@ class TransferService(TaskService, TelegramHandlers, CommandHandlers, TaskViews)
             asyncio.create_task(self._destination_loop(), name="destination-loop"),
             asyncio.create_task(self._scheduler_loop(), name="scheduler-loop"),
             asyncio.create_task(self._watch_loop(), name="watch-loop"),
+            asyncio.create_task(self.reactions.run(reaction_cursor), name="reaction-loop"),
         ]
         await self._notify(
             "🤖 TG2Cloud 服务已启动。可使用输入框左侧菜单，"

@@ -1070,9 +1070,16 @@ class ListenerTests(unittest.IsolatedAsyncioTestCase):
         self.repo.preferences(self.admin, {"confirmation": True})
         m = message(2, chat=self.admin)
         m.sender_id = self.admin
-        await self.owner._on_message(event(self.admin, m))
-        self.assertEqual(len(self.repo.pending(self.admin)), 1)
+        e = event(self.admin, m)
+        await self.owner._on_message(e)
+        e.reply.assert_not_awaited()
+        self.assertEqual(self.owner.reactions.pending[(self.admin, 2)], "🤔")
+        plans = self.repo.pending(self.admin)
+        self.assertEqual(len(plans), 1)
         self.assertEqual(sum(self.db.counts().values()), 1)
+        await planning.submit(self.owner, self.admin, plans[0]["id"], plans[0]["revision"])
+        self.assertEqual(self.owner.reactions.pending[(self.admin, 2)], "👀")
+        self.assertEqual(sum(self.db.counts().values()), 2)
 
     async def test_token_single_use_and_expired_interaction_do_not_write(self):
         b = planning.token_button(

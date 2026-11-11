@@ -24,7 +24,7 @@
 
 v1.3.0 起 Linux 源码拆分到 `src/tg2cloud`，布局调整不改数据库结构、任务状态或备份格式，继续保留 `data/tg115.db`、`data/bot.session` 和已安装镜像的 `app.backup_database`／`app.backup_bundle` 兼容命令。历史人工迁移见 [v1.3.0 记录](https://github.com/LuoPoJunZi/TG2Cloud/blob/c7e0b4b7497fbfa258c752dcff4666d1e2011eae/docs/development/V130-ACCEPTANCE.md)，正式版升级及用户转存反馈见 [v1.3.3 记录](https://github.com/LuoPoJunZi/TG2Cloud/blob/c7e0b4b7497fbfa258c752dcff4666d1e2011eae/docs/development/V133-ACCEPTANCE.md)；都不等于故障回退／灾难恢复已通过。旧版回退需匹配源码和已校验快照，不能用新目录覆盖旧实例。
 
-重新转发同一个已取消文件，或发送 `/restart 123`，Bot 会要求确认“重新转存”。确认有效期为 5 分钟，重启或任务状态变化后需要重新确认。活动任务继续去重，已完成任务继续沿用原去重规则。
+发送 `/restart 123`，Bot 会要求确认“重新转存”。如果要用新转发的同一个文件作为下载来源，请在 Telegram 中回复该附件并发送 `/restart 123`。确认有效期为 5 分钟，重启或任务状态变化后需要重新确认。活动任务继续去重，已完成任务继续沿用原去重规则。
 
 恢复沿用原任务编号，保留状态与恢复记录；完整本地副本优先复用，没有完整副本则重新从 Telegram 获取。不删除历史任务，不创建第二个并发活动任务。连续点击确认只会有一次生效；取消尚未完成时不能恢复。
 

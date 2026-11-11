@@ -124,6 +124,7 @@
     "src/tg2cloud/telegram/listening_tools.py",
     "src/tg2cloud/telegram/planning.py",
     "src/tg2cloud/telegram/quota.py",
+    "src/tg2cloud/telegram/reactions.py",
     "src/tg2cloud/telegram/views.py",
     "src/tg2cloud/transfer/__init__.py",
     "src/tg2cloud/transfer/actions.py",

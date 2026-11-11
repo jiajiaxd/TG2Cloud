@@ -13,6 +13,7 @@ from tg2cloud.domain.planning import PlanningError, name_plan, profile
 from tg2cloud.domain.source_directories import description
 from tg2cloud.listening import account, rules
 from tg2cloud.persistence.plans import Plans
+from tg2cloud.telegram.reactions import PENDING, REJECTED
 from tg2cloud.telegram.views import format_bytes
 
 
@@ -125,7 +126,10 @@ async def submit(owner, actor, plan_id, revision):
             },
         )
         await reader.get_messages(p["chat"], ids=p["message"])
-    return repo.submit(actor, plan_id, revision)
+    task, created = repo.submit(actor, plan_id, revision)
+    if p["source"] is None:
+        owner._mark_task_delivery(p["chat"], p["message"], task, created)
+    return task, created
 
 
 async def pending(owner, event, after=0):
@@ -475,7 +479,10 @@ async def callback(owner, event):
                     [[token_button(owner, actor, "返回待确认列表", ("pending", 0))]],
                 )
             elif action == "ignore":
-                await plan_card(owner, event, repo.edit(actor, *args, ignore=True))
+                ignored = repo.edit(actor, *args, ignore=True)
+                if ignored["source"] is None:
+                    owner.reactions.queue(ignored["chat"], ignored["message"], REJECTED)
+                await plan_card(owner, event, ignored)
             elif action == "rename":
                 await ask(
                     owner,
@@ -815,12 +822,12 @@ async def manual(
         created_at=created_at,
         classification_options=classification_options,
     )
-    if prefs["confirmation"]:
-        await plan_card(owner, event, plan)
+    if plan["status"] == "submitted":
+        owner._mark_task_delivery(event.chat_id, message.id, owner.db.get(plan["task"]), False)
+    elif plan["status"] == "pending" and prefs["confirmation"]:
+        owner.reactions.queue(event.chat_id, message.id, PENDING)
+    elif plan["status"] == "pending":
+        await submit(owner, actor, plan["id"], plan["revision"])
     else:
-        task, _ = repo.submit(actor, plan["id"], plan["revision"])
-        await output(
-            event,
-            f"✅ 已接收并持久化\n任务：#{task['id']}\n文件：{task['file_name']}\n状态：在排队",
-        )
+        owner.reactions.queue(event.chat_id, message.id, REJECTED)
     return True

@@ -24,6 +24,7 @@ from tg2cloud.app import TransferService
 from tg2cloud.config import Settings
 from tg2cloud.monitoring.resources import ResourceSnapshot
 from tg2cloud.persistence.sqlite import TaskDB
+from tg2cloud.telegram.reactions import MessageReactions
 
 
 def encoded(value: str) -> str:
@@ -53,6 +54,7 @@ def make_service(settings: Settings, db: TaskDB) -> TransferService:
     service = TransferService.__new__(TransferService)
     service.settings = settings
     service.db = db
+    service.reactions = MessageReactions(service)
     service.log = Mock()
     service.recent_download_errors = deque(maxlen=50)
     service.recent_upload_errors = deque(maxlen=50)
@@ -179,14 +181,7 @@ class EndToEndSimulationTests(unittest.TestCase):
                 service.rclone.files,  # type: ignore[attr-defined]
                 {"示例视频.mp4": payload},
             )
-            self.assertTrue(any("下载完成" in text for text in notifications))
-            completion = next(
-                text for text in notifications if "CloudDrive2 已接收" in text
-            )
-            self.assertIn("Bot 传输已完成", completion)
-            self.assertIn("WebDAV 远端大小已经复验", completion)
-            self.assertNotIn("/confirm", completion)
-            self.assertNotIn("正在后台上传到 115", completion)
+            self.assertEqual(notifications, [])
             db.close()
 
     def test_large_file_streams_without_local_complete_file(self) -> None:

@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, patch
 
 from telethon import events
 from telethon.tl import types
+from telethon.tl.functions.messages import SendReactionRequest
 from telethon.tl.types import MessageEntityHashtag, MessageEntityTextUrl
 from test_scenarios import make_service, make_settings
 
@@ -98,6 +99,7 @@ class MetadataIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(lambda: self.db.close())
         self.service = make_service(self.settings, self.db)
         self.service.snapshot = None
+        self.service.client = AsyncMock()
 
     def album_message(self, ident, kind, caption="", *, group=123, name=None):
         return SimpleNamespace(
@@ -128,7 +130,11 @@ class MetadataIntegrationTests(unittest.IsolatedAsyncioTestCase):
                          ["NAS 部署教程-视频01.mp4", "NAS 部署教程-图片01.jpg", "NAS 部署教程-视频02.mp4"])
         self.assertEqual(self.db.get(1)["original_file_name"], "原本有意义的视频.mp4")
         for message in (video, photo, second):
-            message.reply.assert_awaited_once()
+            message.reply.assert_not_awaited()
+        await self.service.reactions.flush(0)
+        requests = [call.args[0] for call in self.service.client.await_args_list]
+        self.assertEqual([(request.msg_id, request.reaction[0].emoticon) for request in requests],
+                         [(1, "👀"), (2, "👀"), (3, "👀")])
 
     async def test_album_prefers_full_description_over_an_earlier_category(self):
         photo = self.album_message(1, "photo", "旅行实拍")
@@ -189,8 +195,9 @@ class MetadataIntegrationTests(unittest.IsolatedAsyncioTestCase):
             await fallback
         self.assertEqual(len(self.db.list_recent()), 2)
         self.assertEqual(self.db.get(1)["file_name"], "媒体组测试标题.mp4")
-        video.reply.assert_awaited_once()
-        photo.reply.assert_awaited_once()
+        video.reply.assert_not_awaited()
+        photo.reply.assert_not_awaited()
+        self.assertEqual(self.service.reactions.pending, {(video.chat_id, 1): "👀", (photo.chat_id, 2): "👀"})
 
     async def test_grouped_single_video_falls_back_without_guessing(self):
         video = self.album_message(1, "video", name="123456.mp4")
@@ -198,7 +205,8 @@ class MetadataIntegrationTests(unittest.IsolatedAsyncioTestCase):
             await self.service._on_message(self.single_event(video))
         wait.assert_awaited_once_with(2)
         self.assertEqual(self.db.get(1)["file_name"], "123456.mp4")
-        video.reply.assert_awaited_once()
+        video.reply.assert_not_awaited()
+        self.assertEqual(self.service.reactions.pending, {(video.chat_id, 1): "👀"})
 
     async def test_late_caption_does_not_rename_an_existing_task(self):
         video = self.album_message(1, "video", name="123456.mp4")
@@ -208,7 +216,7 @@ class MetadataIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.service._on_album(self.album_event([video, photo]))
         self.assertEqual(self.db.get(1)["file_name"], "123456.mp4")
         self.assertEqual(self.db.get(2)["file_name"], "迟到的标题.jpg")
-        video.reply.assert_awaited_once()
+        video.reply.assert_not_awaited()
 
     async def test_album_without_title_keeps_originals_and_never_reuses_previous_group(self):
         first = [self.album_message(1, "video"), self.album_message(2, "photo", "第一组标题")]
@@ -232,26 +240,36 @@ class MetadataIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.service._on_album(event)
         self.assertEqual(self.db.list_recent(), [])
 
-    async def test_slow_or_failed_reply_does_not_prevent_other_members_persisting(self):
+    async def test_failed_reaction_does_not_prevent_album_registration_or_other_reactions(self):
         video = self.album_message(1, "video")
         photo = self.album_message(2, "photo", "组标题")
-        release = asyncio.Event()
-        registered = asyncio.Event()
-
-        async def slow_reply(*args, **kwargs):
-            await release.wait()
-
-        async def failed_reply(*args, **kwargs):
-            registered.set()
-            raise ConnectionError("synthetic offline reply failure")
-
-        photo.reply.side_effect = failed_reply
-        video.reply.side_effect = slow_reply
-        delivery = asyncio.create_task(self.service._on_album(self.album_event([video, photo])))
-        await asyncio.wait_for(registered.wait(), timeout=2)
+        self.service.client.side_effect = [ConnectionError("offline"), None]
+        await self.service._on_album(self.album_event([video, photo]))
         self.assertEqual(len(self.db.list_recent()), 2)
-        release.set()
-        await delivery
+        self.service.client.assert_not_awaited()
+        await self.service.reactions.flush(0)
+        self.assertEqual(self.service.client.await_count, 2)
+        video.reply.assert_not_awaited()
+        photo.reply.assert_not_awaited()
+
+    async def test_attachment_reaction_tracks_persisted_state_on_original_message(self):
+        message = self.album_message(42, "video", group=None)
+        event = self.single_event(message)
+        await self.service._on_message(event)
+        cursor = await self.service.reactions.flush(0)
+        for state in ("reserved", "downloading", "downloaded", "waiting_upload", "uploading",
+                      "verifying", "finalizing", "cleanup_pending", "completed"):
+            self.db.transition(1, state)
+            cursor = await self.service.reactions.flush(cursor)
+        await self.service._on_message(event)  # A replay must not replace the completion reaction.
+        await self.service.reactions.flush(cursor)
+        requests = [call.args[0] for call in self.service.client.await_args_list]
+        for request in requests:
+            self.assertIsInstance(request, SendReactionRequest)
+            self.assertEqual((request.peer, request.msg_id), (message.chat_id, message.id))
+        self.assertEqual([request.reaction[0].emoticon for request in requests],
+                         ["👀", "⚡", "👌", "👨‍💻", "👍"])
+        message.reply.assert_not_awaited()
 
     def test_long_album_title_keeps_kind_counter_and_extension(self):
         for kind in ("视频", "图片"):

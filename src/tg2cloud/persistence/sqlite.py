@@ -174,6 +174,18 @@ class TaskDB:
                 "WHERE task_id=? ORDER BY id DESC LIMIT ?", (task_id, limit)
             ).fetchall()]
 
+    def latest_task_event_id(self) -> int:
+        with self._lock:
+            return self._conn.execute("SELECT COALESCE(MAX(id),0) FROM task_events").fetchone()[0]
+
+    def task_state_changes(self, after_id: int) -> list[dict[str, Any]]:
+        with self._lock:
+            return [dict(row) for row in self._conn.execute(
+                "SELECT e.id AS event_id,e.old_state,e.new_state,t.state,t.chat_id,t.message_id,t.sender_id,t.read_identity "
+                "FROM task_events e JOIN tasks t ON t.id=e.task_id WHERE e.id>? ORDER BY e.id LIMIT 200",
+                (after_id,),
+            )]
+
     def close(self) -> None:
         with self._lock:
             self._conn.close()

@@ -389,7 +389,16 @@ class CommandHandlers:
         elif command in {"/restart", "/recover"}:
             task_id = self._parse_task_id(parts)
             if task_id:
-                await self._offer_recovery(event, task_id, rename=command == "/recover")
+                message_id = None
+                if command == "/restart" and getattr(event, "is_reply", False):
+                    task = self.db.get(task_id)
+                    if (task and task["sender_id"] == actor and task["state"] == "cancelled"
+                            and task["read_identity"] == "bot" and task["media_key"]):
+                        replied = await event.get_reply_message()
+                        if (replied and replied.sender_id == actor and replied.chat_id == task["chat_id"]
+                                and self._media_key(replied) == task["media_key"]):
+                            message_id = replied.id
+                await self._offer_recovery(event, task_id, rename=command == "/recover", message_id=message_id)
             else:
                 await event.reply(f"用法：{command} <任务编号>")
         elif command in {"/search", "/tasks"}:

@@ -19,7 +19,7 @@ from tg2cloud.domain.naming import (
     video_file_name,
 )
 from tg2cloud.domain.states import FAILED_STATES
-from tg2cloud.telegram.views import format_bytes
+from tg2cloud.telegram.reactions import CANCELLED, DUPLICATE, RECEIVED, REJECTED
 
 
 class TelegramHandlers:
@@ -106,7 +106,7 @@ class TelegramHandlers:
         ):
             return
         if len(messages) > 100:
-            await event.reply("媒体组过大，未按组接收；请分组重发并核对任务列表。")
+            self.reactions.queue(event.chat_id, min(message.id for message in messages), REJECTED)
             return
         # Telegram updates may arrive out of order or be repeated. Use only this
         # received group, ordered by message id; never fetch channel history.
@@ -142,16 +142,13 @@ class TelegramHandlers:
                 numbers[kind] += 1
                 name = album_file_name(title, kind, None if pair else numbers[kind], extension)
             proxy = SimpleNamespace(sender_id=message.sender_id, chat_id=message.chat_id,
-                                    is_private=True, message=message, raw_text=self._media_caption(message),
-                                    reply=message.reply)
+                                    is_private=True, message=message, raw_text=self._media_caption(message))
             deliveries.append(self._on_message(proxy, album_name=name, album_delivery=True, created_at=group_created_at,
                                               classification_options=group_options))
-        # Each ingestion writes its SQLite task before awaiting the reply. A slow
-        # reply for one photo must not delay registration of the other members.
         results = await asyncio.gather(*deliveries, return_exceptions=True)
         for message, result in zip(messages, results):
             if isinstance(result, Exception):
-                self.log.error("媒体组消息 %s 接收或回复失败；请核对任务列表后重发。", message.id)
+                self.log.error("媒体组消息 %s 接收失败；请核对任务列表后重发。", message.id)
 
     @user_event
     async def _on_message(self, event: events.NewMessage.Event, *,
@@ -182,18 +179,19 @@ class TelegramHandlers:
             if await planning_text(self, event, text):
                 return
 
-        if not message.media or not message.file:
-            await event.reply("这条消息没有可下载的文件。请转发视频或文档。")
+        chat_id, message_id = int(event.chat_id), int(message.id)
+        if not downloadable:
+            self.reactions.queue(chat_id, message_id, REJECTED)
             return
         file_size = int(message.file.size or 0)
         if file_size <= 0:
-            await event.reply("无法读取文件大小，任务没有进入队列。")
+            self.reactions.queue(chat_id, message_id, REJECTED)
             return
         snapshot = getattr(self, "snapshot", None)
         if snapshot and (snapshot.disk_free <= self.settings.min_free_disk_bytes or any(
             free <= self.settings.min_free_disk_bytes for _, free in snapshot.filesystems
         )):
-            await event.reply("磁盘空间触及安全线，暂不接收新文件。请释放空间后重新转发；已有任务记录保留。")
+            self.reactions.queue(chat_id, message_id, REJECTED)
             return
         fallback = f"telegram-{message.id}{message.file.ext or '.bin'}"
         file_name = safe_file_name(clean_promotional_affixes(message.file.name or ""), fallback)
@@ -211,15 +209,14 @@ class TelegramHandlers:
                 self.log.warning("媒体标题识别失败，使用原有文件命名；未影响任务接收。")
         if album_name:
             file_name = album_name
-        from tg2cloud.persistence.quotas import QuotaExceeded
         try:
             from tg2cloud.telegram.planning import manual
             if await manual(self, event, message, file_name, created_at=created_at,
                             classification_options=classification_options):
                 return
             task, created = self.db.create_task(
-                chat_id=int(event.chat_id),
-                message_id=int(message.id),
+                chat_id=chat_id,
+                message_id=message_id,
                 sender_id=int(event.sender_id),
                 media_key=self._media_key(message),
                 file_name=file_name,
@@ -230,28 +227,18 @@ class TelegramHandlers:
                 target_base=self.settings.cd2_target, created_at=created_at,
                 classification_options=classification_options,
             )
-        except QuotaExceeded as exc:
-            await event.reply(str(exc))
+        except (ValueError, RuntimeError) as exc:
+            self.log.warning("消息 %s 未进入队列：%s", message_id, type(exc).__name__)
+            self.reactions.queue(chat_id, message_id, REJECTED)
             return
-        except (ValueError, RuntimeError):
-            await event.reply("任务未登记：分类或配额配置暂不可用，请联系管理员核对；未上传到其他目录。")
-            return
-        if not created:
-            if task["state"] == "cancelled":
-                await self._offer_recovery(event, int(task["id"]), message_id=int(message.id))
-                return
-            await event.reply(
-                f"这个文件已经登记过。\n{self._format_task(task)}", buttons=self._task_buttons(task)
-            )
-            return
-        await event.reply(
-            "✅ 已接收并持久化\n"
-            f"任务：#{task['id']}\n"
-            f"文件：{file_name}\n"
-            f"大小：{format_bytes(file_size)}\n"
-            "状态：在排队\n"
-            "无需重新转发，系统会自动处理。"
-        )
+        self._mark_task_delivery(chat_id, message_id, task, created)
+
+    def _mark_task_delivery(self, chat_id: int, message_id: int, task: dict, created: bool) -> None:
+        if created:
+            self.reactions.queue(chat_id, message_id, RECEIVED)
+        elif (chat_id, message_id) != (task["chat_id"], task["message_id"]):
+            emoji = CANCELLED if task["state"] == "cancelled" else DUPLICATE
+            self.reactions.queue(chat_id, message_id, emoji)
 
     async def _watch_loop(self) -> None:
         while not self._stop.is_set():

@@ -1,4 +1,4 @@
-"""Optional administrator alerts. Observe existing probes, never make another one."""
+"""Administrator alerts and notifications for transfers from monitored sources."""
 from __future__ import annotations
 
 import asyncio
@@ -15,6 +15,11 @@ EVENTS = {
     "review": ("任务需要人工处理", "部分文件已停止自动重试", "查看自己的失败任务和恢复提示，不要直接删除远端文件"),
     "blocked": ("资源限制导致长时间等待", "部分排队任务无法继续", "检查暂存预算、磁盘余量和系统资源"),
 }
+
+
+async def notify_listener_task(service, task: dict, message: str) -> None:
+    if task.get("read_identity", "bot").startswith("listener:"):
+        await service._notify(message)
 
 
 def observations(service, now: float) -> dict[str, bool | None]:

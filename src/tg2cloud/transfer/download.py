@@ -12,6 +12,7 @@ from tg2cloud.domain.errors import (
 from tg2cloud.domain.naming import (
     safe_file_name,
 )
+from tg2cloud.monitoring.notifications import notify_listener_task
 
 
 @task_actor
@@ -93,7 +94,8 @@ async def _download_one(self, task_id: int) -> None:
                     wait_reason=None,
                     next_retry_at=0,
                 )
-                await self._notify(
+                await notify_listener_task(
+                    self, task,
                     f"⬇️ 下载完成，等待上传\n任务：#{task_id}\n"
                     f"文件：{task['file_name']}"
                 )
@@ -153,7 +155,8 @@ async def _download_one(self, task_id: int) -> None:
             error="下载重试次数已经用完" + ("；" + last_failure if last_failure else ""),
             wait_reason=None,
         )
-        await self._notify(
+        await notify_listener_task(
+            self, task,
             f"❌ 下载失败\n任务：#{task_id}\n"
             "不完整文件已清理，可使用 /retry 重新排队。"
         )

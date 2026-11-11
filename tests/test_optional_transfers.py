@@ -74,7 +74,7 @@ class OptionalTransferTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.service.rclone.files, {"视频/travel.mp4": b"movie"})
         self.assertFalse(list(self.settings.download_dir.iterdir()))
 
-    async def test_album_freezes_rule_and_date_even_when_setting_changes_during_reply(self):
+    async def test_album_freezes_rule_and_date_even_when_setting_changes_during_ingestion(self):
         self.mode("type_month")
         owner = self.settings.allowed_user_id
         messages = []
@@ -84,11 +84,16 @@ class OptionalTransferTests(unittest.IsolatedAsyncioTestCase):
             messages.append(SimpleNamespace(id=number, sender_id=owner, chat_id=owner, grouped_id=77, out=False,
                 video=video, photo=None if video else SimpleNamespace(id=number), document=SimpleNamespace(id=number) if video else None,
                 file=file, media=True, raw_text="春日旅行", entities=(), reply=AsyncMock()))
-        async def first_reply(*args, **kwargs):
-            self.mode("off")
-        messages[0].reply.side_effect = first_reply
+        queue = self.service.reactions.queue
+
+        def change_after_first_reaction(chat_id, message_id, emoji):
+            queue(chat_id, message_id, emoji)
+            if message_id == 1:
+                self.mode("off")
+
         event = SimpleNamespace(sender_id=owner, chat_id=owner, grouped_id=77, messages=messages, is_private=True)
-        with patch("tg2cloud.telegram.handlers.time.time", return_value=1791028800):
+        with patch("tg2cloud.telegram.handlers.time.time", return_value=1791028800), \
+             patch.object(self.service.reactions, "queue", side_effect=change_after_first_reaction):
             await self.service._on_album(event)
         self.assertEqual(self.db.get(1)["target_directory"], "视频/2026/10")
         self.assertEqual(self.db.get(2)["target_directory"], "图片/2026/10")

@@ -49,9 +49,17 @@ class RecoveryTests(unittest.IsolatedAsyncioTestCase):
         event = SimpleNamespace(sender_id=self.settings.allowed_user_id, is_private=True,
                                 chat_id=self.settings.allowed_user_id, raw_text="", reply=AsyncMock(),
                                 message=SimpleNamespace(id=2, media=True, document=SimpleNamespace(id=1),
+                                                        sender_id=self.settings.allowed_user_id,
+                                                        chat_id=self.settings.allowed_user_id,
                                                         file=SimpleNamespace(size=4, ext=".bin", name="example.bin")))
         await self.service._on_message(event)
         self.assertEqual(self.db.get(task["id"])["state"], "cancelled")
+        event.reply.assert_not_awaited()
+        self.assertEqual(self.service.reactions.pending[(event.chat_id, 2)], "🫡")
+        await self.service._handle_command(
+            SimpleNamespace(is_reply=True, get_reply_message=AsyncMock(return_value=event.message), reply=AsyncMock()),
+            f"/restart {task['id']}",
+        )
         plan = self.service._recovery_confirmations[task["id"]]
         callback = SimpleNamespace(edit=AsyncMock())
         await self.service._confirm_recovery(callback, task["id"], plan["token"])

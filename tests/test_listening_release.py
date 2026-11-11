@@ -10,7 +10,7 @@ from types import SimpleNamespace as NS
 from unittest.mock import AsyncMock, patch
 
 from tg2cloud.listening import account
-from tg2cloud.persistence.migrations import migrate
+from tg2cloud.persistence.migrations import SCHEMA_VERSION, migrate
 from tg2cloud.persistence.plans import create_schema
 from tg2cloud.persistence.sqlite import TaskDB
 from tg2cloud.telegram.planning import output
@@ -65,6 +65,7 @@ class ReleaseAuditTests(unittest.IsolatedAsyncioTestCase):
             try:
                 c.execute("ALTER TABLE tasks DROP COLUMN source_id")
                 c.execute("ALTER TABLE tasks DROP COLUMN read_identity")
+                c.execute("ALTER TABLE tasks DROP COLUMN classification_parent")
                 for table in ("transfer_preferences", "transfer_directories", "listener_events",
                               "transfer_plans", "listener_revisions", "naming_feedback", "listener_sources"):
                     c.execute('DROP TABLE "' + table + '"')
@@ -82,6 +83,6 @@ class ReleaseAuditTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(c.execute("SELECT type,name,sql FROM sqlite_master ORDER BY type,name").fetchall(), old_schema)
                 self.assertEqual(c.execute("PRAGMA integrity_check").fetchone()[0], "ok")
                 migrate(c, columns)
-                self.assertEqual(c.execute("PRAGMA user_version").fetchone()[0], 3)
+                self.assertEqual(c.execute("PRAGMA user_version").fetchone()[0], SCHEMA_VERSION)
             finally:
                 c.close()

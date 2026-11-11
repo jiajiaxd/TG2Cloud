@@ -8,6 +8,9 @@ from zoneinfo import ZoneInfo
 
 from tg2cloud.persistence.features import MODES
 
+MANUAL_MEDIA = "manual_media"
+MEDIA_CATEGORIES = ("视频", "图片", "其它")
+
 EXTENSIONS = {
     "视频": {".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v", ".ts", ".flv"},
     "图片": {".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".avif", ".bmp"},
@@ -42,10 +45,23 @@ def safe_directory(path: str) -> str:
     return path
 
 
-def directory(preferences: dict, created_at: float, *, kind="", mime="", extension="") -> str:
+def media_directories(parent: str) -> tuple[str, ...]:
+    safe_directory(parent)
+    return tuple(safe_directory(str(PurePosixPath(parent, category))) for category in MEDIA_CATEGORIES)
+
+
+def directory(preferences: dict, created_at: float, *, kind="", mime="", extension="",
+              parent: str | None = None) -> str:
     mode = preferences["classification"]
+    if mode == MANUAL_MEDIA:
+        category = media_type(kind, mime, extension)
+        if category not in MEDIA_CATEGORIES:
+            category = "其它"
+        return safe_directory(str(PurePosixPath(safe_directory(parent or ""), category)))
     if mode not in MODES:
         raise ValueError("未知分类规则")
+    if parent is not None:
+        return safe_directory(parent)
     if mode == "off":
         return ""
     parts = []

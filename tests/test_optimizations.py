@@ -110,7 +110,7 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
 
         text = event.reply.await_args.args[0]
         buttons = event.reply.await_args.kwargs["buttons"]
-        self.assertIn("☁️ **TG2Cloud**", text)
+        self.assertIn("☁️ <b>TG2Cloud</b>", text)
         self.assertIn("🟢 正常运行 · CloudDrive2", text)
         self.assertIn("🕐 更新于 21:35:08", text)
         self.assertEqual([[button.text for button in row] for row in buttons], [["📋", "🖥", "🔄"], ["转存设置", "监听管理"]])
@@ -291,7 +291,7 @@ class OptimizationTests(unittest.IsolatedAsyncioTestCase):
         await self.service._handle_callback(event)
 
         self.service._probe_destination_once.assert_awaited_once_with()
-        self.assertIn("☁️ **TG2Cloud**", event.edit.await_args.args[0])
+        self.assertIn("☁️ <b>TG2Cloud</b>", event.edit.await_args.args[0])
 
     async def test_unchanged_dashboard_edit_is_not_user_visible_error(self) -> None:
         event = SimpleNamespace(

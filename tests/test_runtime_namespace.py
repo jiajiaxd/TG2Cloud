@@ -55,12 +55,13 @@ assert telethon.TelegramClient is not None
 import tempfile
 from types import SimpleNamespace
 from tg2cloud.listening.account import state, session_lock
+from tg2cloud.persistence.migrations import SCHEMA_VERSION
 from tg2cloud.persistence.sqlite import TaskDB
 from tg2cloud.persistence.plans import Plans
 with tempfile.TemporaryDirectory() as temporary:
     root = Path(temporary)
     db = TaskDB(root / 'tg115.db')
-    assert db._conn.execute('PRAGMA user_version').fetchone()[0] == 3
+    assert db._conn.execute('PRAGMA user_version').fetchone()[0] == SCHEMA_VERSION
     assert state(db)['enabled'] is False and state(db)['account'] is None
     assert Plans(db, 42).preferences(42)['confirmation'] is False
     (root / 'bot.session').write_bytes(b'synthetic-bot-session')

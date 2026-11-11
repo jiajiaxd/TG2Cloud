@@ -36,6 +36,7 @@ from tg2cloud.listening.service import (
     source_error,
 )
 from tg2cloud.persistence import features
+from tg2cloud.persistence.migrations import SCHEMA_VERSION
 from tg2cloud.persistence.plans import Plans
 from tg2cloud.persistence.sqlite import TaskDB
 from tg2cloud.telegram import planning
@@ -330,7 +331,7 @@ class SourceDirectoryTests(unittest.IsolatedAsyncioTestCase):
             task, _ = repo.submit(self.admin, p["id"], p["revision"])
             self.assertEqual(task["target_directory"], "城市旅行/视频")
             self.assertEqual(
-                reopened._conn.execute("PRAGMA user_version").fetchone()[0], 3
+                reopened._conn.execute("PRAGMA user_version").fetchone()[0], SCHEMA_VERSION
             )
         finally:
             reopened.close()
@@ -473,6 +474,7 @@ class SourceDirectoryTests(unittest.IsolatedAsyncioTestCase):
                 [
                     ["切换确认模式", "命名设置"],
                     ["待确认列表", "修正记录"],
+                    ["开启自动分类"],
                     ["目录别名管理", "返回系统状态"],
                 ],
             )

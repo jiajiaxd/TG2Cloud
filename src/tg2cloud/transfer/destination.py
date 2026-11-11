@@ -3,9 +3,15 @@ from __future__ import annotations
 import asyncio
 import time
 
+from tg2cloud.domain.classification import media_directories
 from tg2cloud.monitoring.observations import record_event
 from tg2cloud.storage.policies import policy_for
-from tg2cloud.transfer.ports import DestinationProbe
+from tg2cloud.transfer.ports import Destination, DestinationProbe
+
+
+async def prepare_media_directories(destination: Destination, parent: str) -> None:
+    for directory in media_directories(parent):
+        await destination.ensure_directory(directory)
 
 
 async def _probe_destination_once(self) -> None:

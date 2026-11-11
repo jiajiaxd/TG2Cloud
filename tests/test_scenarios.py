@@ -577,7 +577,7 @@ class EndToEndSimulationTests(unittest.TestCase):
                 self.assertNotIn("Bot 完成 2", text)
                 self.assertNotIn("并发窗口", text)
                 self.assertNotIn("/confirm", text)
-                self.assertNotIn("115", text)
+                self.assertIn("保存目录：/115/Telegram", text)
             finally:
                 db.close()
 

@@ -2,16 +2,20 @@ from __future__ import annotations
 
 import time
 import unicodedata
+from html import escape
 from typing import Any
 
 from telethon import Button
 
+from tg2cloud.domain.classification import MEDIA_CATEGORIES
 from tg2cloud.domain.errors import (
     needs_review,
     safe_failure,
 )
 from tg2cloud.domain.states import FAILED_STATES, STATE_LABELS
 from tg2cloud.monitoring.progress import dashboard_rates, sample_rate
+from tg2cloud.persistence.features import MODES
+from tg2cloud.persistence.plans import Plans
 
 ORPHAN_CLEANUP_LIMIT = 100
 ORPHAN_CLEANUP_TTL_SECONDS = 5 * 60
@@ -352,6 +356,24 @@ class TaskViews:
             return f"🟡 调度已暂停 · {destination}"
         return f"🟢 正常运行 · {destination}"
 
+    def _format_save_directory(self, actor: int) -> str:
+        repo = Plans(self.db, self.settings.allowed_user_id)
+        try:
+            prefs = repo.preferences(actor)
+            relative, aliases = repo.personal_directory(actor, prefs)
+            mode = self.db.feature_settings()["classification"] if not relative else "off"
+        except (ValueError, PermissionError):
+            return "保存目录：不可用，请在转存设置中重新选择"
+        base = self.settings.cd2_target.strip("/")
+        path = "/" + "/".join(part for part in (base, relative) if part)
+        alias = "、".join(aliases) if aliases else "未设置"
+        classification = " / ".join(MEDIA_CATEGORIES) if prefs["auto_classify"] else MODES[mode]
+        return (
+            f"保存目录：{escape(path)}\n"
+            f"目录别名：{escape(alias)}\n"
+            f"分类规则：{classification}"
+        )
+
     def _format_status(self) -> str:
         from tg2cloud.domain.actors import current_user
 
@@ -373,11 +395,12 @@ class TaskViews:
             network_rate = self.snapshot.network_bytes_per_second if self._sample_fresh() else None
         queued = counts.get("queued", 0)
         return (
-            "☁️ **TG2Cloud**\n"
-            f"{self._runtime_status_line()}\n\n"
-            "📋 **任务**\n"
+            "☁️ <b>TG2Cloud</b>\n"
+            f"{escape(self._runtime_status_line())}\n\n"
+            f"{self._format_save_directory(actor)}\n\n"
+            "📋 <b>任务</b>\n"
             f"⏳ {queued}　⬇️ {downloading}　⬆️ {uploading}　❌ {failed}\n\n"
-            "📊 **实时状态**\n"
+            "📊 <b>实时状态</b>\n"
             f"⬇️ {format_dashboard_rate(download_rate)}\n"
             f"⬆️ {format_dashboard_rate(upload_rate)}\n"
             f"🌐 {format_dashboard_rate(network_rate)}\n\n"

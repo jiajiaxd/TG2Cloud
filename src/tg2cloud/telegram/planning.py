@@ -9,12 +9,15 @@ import time
 from telethon import Button
 
 from tg2cloud.domain.actors import current_user
+from tg2cloud.domain.classification import MANUAL_MEDIA
+from tg2cloud.domain.classification import directory as classified_directory
 from tg2cloud.domain.planning import PlanningError, name_plan, profile
 from tg2cloud.domain.source_directories import description
 from tg2cloud.listening import account, rules
 from tg2cloud.persistence.plans import Plans
 from tg2cloud.telegram.reactions import PENDING, REJECTED
 from tg2cloud.telegram.views import format_bytes
+from tg2cloud.transfer.destination import prepare_media_directories
 
 
 def store(owner):
@@ -92,6 +95,11 @@ async def plan_card(owner, event, plan):
         ]
     status = {"pending": "待确认", "submitted": "已入队", "ignored": "已忽略", "expired": "已过期"}.get(plan["status"], "状态待核对")
     directory = value["directory_override"]
+    if value["classification_options"]["classification"] == MANUAL_MEDIA:
+        directory = classified_directory(
+            value["classification_options"], value["created_at"], kind=value["media_kind"],
+            mime=value["mime_type"], extension=value["media_extension"], parent=directory,
+        )
     directory = "现有分类与默认目录" if directory is None else directory or "Bot 保存目录（无附加子目录）"
     text = (
         f"📦 转存计划 #{plan['id']}\n状态：{status}\n原名：{value['original_file_name'] or '无原名'}"
@@ -182,6 +190,8 @@ async def settings(owner, event):
             token_button(owner, actor, "待确认列表", ("pending", 0)),
             token_button(owner, actor, "修正记录", ("feedback",)),
         ],
+        [token_button(owner, actor, "关闭自动分类" if prefs["auto_classify"] else "开启自动分类",
+                      ("auto-classify", prefs["auto_classify"]))],
     ]
     navigation = []
     if actor == owner.settings.allowed_user_id:
@@ -194,9 +204,19 @@ async def settings(owner, event):
         + ("开启" if prefs["confirmation"] else "关闭（默认自动转存）")
         + "\n命名模式："
         + MODES[prefs["profile"]["mode"]]
+        + "\n自动分类："
+        + ("开启（视频、图片、其它）" if prefs["auto_classify"] else "关闭")
         + "\n仅影响新计划；已入队任务保持原名称和目录。",
         rows,
     )
+
+
+async def prepare_personal_classification(owner, repo, actor, prefs):
+    parent, _ = repo.personal_directory(actor, prefs)
+    try:
+        await prepare_media_directories(owner.rclone, parent)
+    except (OSError, RuntimeError, ValueError):
+        raise PlanningError("分类目录创建失败，请检查保存目录和 WebDAV 权限后重试。") from None
 
 
 async def listening(owner, event):
@@ -380,6 +400,18 @@ async def callback(owner, event):
             from tg2cloud.telegram import editor
             await editor.callback(owner, event, args)
         elif action == "settings":
+            await settings(owner, event)
+        elif action == "auto-classify":
+            prefs = repo.preferences(actor)
+            if prefs["auto_classify"] != args[0]:
+                raise PlanningError("自动分类设置已变化，请重新打开转存设置。")
+            enabled = not prefs["auto_classify"]
+            if enabled:
+                await prepare_personal_classification(owner, repo, actor, prefs)
+            with repo.transaction(actor):
+                if repo.preferences(actor) != prefs:
+                    raise PlanningError("转存设置已变化，请重新打开。")
+                repo.preferences(actor, {"auto_classify": enabled})
             await settings(owner, event)
         elif action == "cancelinput":
             interactions(owner).pop(actor, None)
@@ -791,11 +823,10 @@ async def text(owner, event, value):
 
 
 async def manual(
-    owner, event, message, file_name, *, created_at=None, classification_options=None
+    owner, event, message, file_name, prefs, *, created_at=None, classification_options=None
 ):
     repo = store(owner)
     actor = current_user(owner.settings.allowed_user_id)
-    prefs = repo.preferences(actor)
     if not prefs["confirmation"] and prefs["profile"] == profile():
         return False
     item = rules.facts(message)

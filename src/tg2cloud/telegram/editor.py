@@ -689,13 +689,18 @@ async def save(owner, event, d):
                 await ui().source_card(owner, event, d.source)
                 return
     elif d.kind == "personal":
+        new_profile = profile(d.config["profile"])
+        if d.original["auto_classify"] and new_profile["directory"] != d.original["profile"]["directory"]:
+            if repo.preferences(actor) != d.original:
+                raise PlanningError("配置已变化，请重新打开。")
+            await ui().prepare_personal_classification(owner, repo, actor, {"profile": new_profile})
         with repo.transaction(actor):
             if repo.preferences(actor) != d.original:
                 raise PlanningError("配置已变化，请重新打开。")
             repo.preferences(
                 actor,
                 {
-                    "profile": profile(d.config["profile"]),
+                    "profile": new_profile,
                     "confirmation": d.config["confirmation"],
                 },
             )

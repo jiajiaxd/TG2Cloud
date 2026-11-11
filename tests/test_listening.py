@@ -29,6 +29,7 @@ from tg2cloud.listening.service import (
     task_source,
     verified_chat,
 )
+from tg2cloud.persistence.migrations import SCHEMA_VERSION
 from tg2cloud.persistence.plans import Plans
 from tg2cloud.persistence.sqlite import TaskDB
 from tg2cloud.telegram import planning
@@ -470,7 +471,7 @@ class StoreTests(unittest.TestCase):
         self.db = TaskDB(self.root / "tasks.db")
         self.addCleanup(self.db.close)
         self.assertEqual(self.db.get(task["id"])["file_name"], "retained.mp4")
-        self.assertEqual(self.db._conn.execute("PRAGMA user_version").fetchone()[0], 3)
+        self.assertEqual(self.db._conn.execute("PRAGMA user_version").fetchone()[0], SCHEMA_VERSION)
         names = {row[0] for row in self.db._conn.execute("SELECT name FROM sqlite_master WHERE type='index'")}
         self.assertLessEqual(expected, names)
 
@@ -496,7 +497,7 @@ class StoreTests(unittest.TestCase):
             chat_id=1, message_id=1, sender_id=1, file_name="old.mp4", file_size=100
         )[0]
         self.assertEqual(task["read_identity"], "bot")
-        self.assertEqual(self.db._conn.execute("PRAGMA user_version").fetchone()[0], 3)
+        self.assertEqual(self.db._conn.execute("PRAGMA user_version").fetchone()[0], SCHEMA_VERSION)
         self.db.close()
         self.db = TaskDB(self.root / "tasks.db")
         self.addCleanup(self.db.close)
@@ -664,7 +665,7 @@ class StoreTests(unittest.TestCase):
         self.addCleanup(self.db.close)
         self.assertEqual(self.db.get(1)["file_name"], "历史任务.mp4")
         self.assertEqual(self.db.get(1)["read_identity"], "bot")
-        self.assertEqual(self.db._conn.execute("PRAGMA user_version").fetchone()[0], 3)
+        self.assertEqual(self.db._conn.execute("PRAGMA user_version").fetchone()[0], SCHEMA_VERSION)
 
 
 class ListenerTests(unittest.IsolatedAsyncioTestCase):

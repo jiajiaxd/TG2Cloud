@@ -1,9 +1,9 @@
-"""Existing schema v1 migration; caller retains its connection and RLock."""
+"""Transactional business database migrations under the caller's lock."""
 import sqlite3
 
 from tg2cloud.domain.states import FAILED_STATES
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 def migrate(connection: sqlite3.Connection, columns: set[str]) -> None:
     connection.execute("BEGIN IMMEDIATE")
@@ -20,6 +20,7 @@ def migrate(connection: sqlite3.Connection, columns: set[str]) -> None:
             ("target_base", "TEXT"),
             ("read_identity", "TEXT NOT NULL DEFAULT 'bot'"),
             ("source_id", "INTEGER"),
+            ("classification_parent", "TEXT"),
         ):
             if name not in columns:
                 connection.execute(f"ALTER TABLE tasks ADD COLUMN {name} {declaration}")

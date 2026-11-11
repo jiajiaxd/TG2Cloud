@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 from tg2cloud.domain import classification
 from tg2cloud.persistence import features
+from tg2cloud.persistence.migrations import SCHEMA_VERSION
 from tg2cloud.persistence.sqlite import TaskDB
 from tg2cloud.transfer.upload import _choose_remote_final
 
@@ -78,4 +79,9 @@ class ClassificationTests(unittest.IsolatedAsyncioTestCase):
         self.mode("type")
         repeated = self.task(media_kind="视频")
         self.assertEqual(task, repeated)
-        self.assertEqual(self.db._conn.execute("PRAGMA user_version").fetchone()[0], 3)
+        self.db._conn.execute("ALTER TABLE tasks DROP COLUMN classification_parent")
+        self.db._conn.execute("PRAGMA user_version=3")
+        reopened = TaskDB(self.path)
+        self.addCleanup(reopened.close)
+        self.assertEqual(reopened._conn.execute("PRAGMA user_version").fetchone()[0], SCHEMA_VERSION)
+        self.assertEqual(reopened.get(task["id"]), task)

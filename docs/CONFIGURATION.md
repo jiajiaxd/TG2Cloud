@@ -7,7 +7,7 @@ v1.5.3 起，全新安装使用 `data/tg2cloud.db`；已有实例若只有 `data
 
 ## 监听配置
 
-监听默认关闭，无新增必填环境变量；来源、计划和可选设置在业务数据库 schema 3，个人 Session 位于 `data/listener/personal.session`，与 Bot Session 分开。旧版升级可能执行事务迁移，回退必须匹配代码和快照；操作见[监听指南](LISTENING.md)。
+监听默认关闭。来源、计划和可选设置在业务数据库中，当前版本为 schema 4。个人 Session 位于 `data/listener/personal.session`，与 Bot Session 分开。回退必须匹配代码和快照，操作见[监听指南](LISTENING.md)。
 
 ## 接入信息与账号不要混用
 

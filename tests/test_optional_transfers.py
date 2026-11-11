@@ -7,11 +7,16 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
+from telethon.extensions import html
 from test_scenarios import FakeRclone, make_service, make_settings
+from test_telethon_compat import callback_data
 
 from tg2cloud.domain.actors import user_scope
+from tg2cloud.domain.planning import profile
 from tg2cloud.persistence import features
+from tg2cloud.persistence.plans import Plans
 from tg2cloud.persistence.sqlite import TaskDB
+from tg2cloud.telegram import planning
 
 
 class ClassifiedRclone(FakeRclone):
@@ -39,6 +44,91 @@ class OptionalTransferTests(unittest.IsolatedAsyncioTestCase):
 
     def mode(self, value):
         features.change(self.db._conn, self.db.feature_settings()["revision"], {"classification": value})
+
+    async def classification_button(self, label):
+        menu = SimpleNamespace(reply=AsyncMock())
+        await self.service._handle_command(menu, "/transfer")
+        buttons = menu.reply.await_args.kwargs["buttons"]
+        button = next(button for row in buttons for button in row if button.text == label)
+        event = SimpleNamespace(data=callback_data(button), answer=AsyncMock(), edit=AsyncMock())
+        await self.service._handle_callback(event)
+        return event.edit.await_args.args[0]
+
+    async def deliver(self, ident, name, mime):
+        actor = self.settings.allowed_user_id
+        message = SimpleNamespace(id=ident, chat_id=actor, media=True, document=SimpleNamespace(id=ident),
+                                  file=SimpleNamespace(name=name, ext=Path(name).suffix, size=5, mime_type=mime))
+        event = SimpleNamespace(sender_id=actor, chat_id=actor, is_private=True, raw_text="", message=message)
+        await self.service._on_message(event)
+
+    async def test_personal_classification_prepares_root_and_freezes_each_new_task(self):
+        actor = self.settings.allowed_user_id
+        repo = Plans(self.db, actor)
+        self.assertIn("自动分类：开启", await self.classification_button("开启自动分类"))
+        self.assertEqual(self.service.rclone.directories, ["视频", "图片", "其它"])
+        for ident, name, mime, category in (
+            (1, "旅行.mp4", "video/mp4", "视频"),
+            (2, "照片.jpg", "application/octet-stream", "图片"),
+            (3, "课程.mp3", "audio/mpeg", "其它"),
+        ):
+            await self.deliver(ident, name, mime)
+            self.assertEqual(self.db.get(ident)["target_directory"], category)
+        self.assertIn("自动分类：关闭", await self.classification_button("关闭自动分类"))
+        self.assertFalse(repo.preferences(actor)["auto_classify"])
+        await self.deliver(4, "新文档.pdf", "application/pdf")
+        self.assertEqual(self.db.get(4)["target_directory"], "")
+
+        local = self.settings.download_dir / "课程.mp3"
+        local.write_bytes(b"sound")
+        self.db.update(3, state="waiting_upload", local_path=str(local))
+        await self.service._upload_one(3)
+        self.assertEqual(self.db.get(3)["state"], "completed")
+        self.assertEqual(self.service.rclone.files, {"其它/课程.mp3": b"sound"})
+
+    async def test_status_alias_and_classification_for_manual_plan_directory_override(self):
+        actor = self.settings.allowed_user_id
+        repo = Plans(self.db, actor)
+        repo.set_directory(actor, "课件 & 视频", "课程/<物理>", [])
+        repo.set_directory(actor, "归档", "归档", [])
+        repo.preferences(actor, {"profile": profile({"directory": "课程/<物理>"}), "confirmation": True})
+        await self.classification_button("开启自动分类")
+        self.assertEqual(self.service.rclone.directories, [f"课程/<物理>/{name}" for name in ("视频", "图片", "其它")])
+        event = SimpleNamespace(reply=AsyncMock())
+        self.service.snapshot = None
+        await self.service._handle_command(event, "/status")
+        self.assertEqual(event.reply.await_args.kwargs["parse_mode"], "html")
+        status, _ = html.parse(event.reply.await_args.args[0])
+        self.assertIn("保存目录：/115/Telegram/课程/<物理>", status)
+        self.assertIn("目录别名：课件 & 视频", status)
+        self.assertIn("分类规则：视频 / 图片 / 其它", status)
+
+        self.db.change_family_user(actor, {"id": 22, "action": "add", "revision": "initial"})
+        with user_scope(22):
+            member_status = self.service._format_status()
+            self.assertIn("保存目录：/115/Telegram\n目录别名：未设置", member_status)
+            self.assertNotIn("课件", member_status)
+
+        await self.deliver(1, "资料.pdf", "application/pdf")
+        plan, = repo.pending(actor)
+        preview = SimpleNamespace(reply=AsyncMock())
+        await planning.plan_card(self.service, preview, plan)
+        self.assertIn("目录：课程/<物理>/其它", preview.reply.await_args.args[0])
+        plan = repo.edit(actor, plan["id"], plan["revision"], directory_alias="归档")
+        await self.classification_button("关闭自动分类")
+        task, created = await planning.submit(self.service, actor, plan["id"], plan["revision"])
+        self.assertTrue(created)
+        self.assertEqual(task["target_directory"], "归档/其它")
+        remote = await self.service._choose_remote_final(task["file_name"], task["id"])
+        self.assertEqual(remote, "归档/其它/资料.pdf")
+        self.assertEqual(self.service.rclone.directories[-3:], ["归档/视频", "归档/图片", "归档/其它"])
+
+    async def test_failed_category_creation_keeps_switch_off_and_can_retry(self):
+        repo = Plans(self.db, self.settings.allowed_user_id)
+        with patch.object(self.service.rclone, "ensure_directory", side_effect=[None, RuntimeError("remote error")]):
+            self.assertIn("分类目录创建失败", await self.classification_button("开启自动分类"))
+        self.assertFalse(repo.preferences(repo.admin)["auto_classify"])
+        self.assertIn("自动分类：开启", await self.classification_button("开启自动分类"))
+        self.assertTrue(repo.preferences(repo.admin)["auto_classify"])
 
     async def test_both_backends_preserve_name_verify_cleanup_and_quota_once(self):
         self.mode("type_month")

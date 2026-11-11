@@ -6,7 +6,11 @@ import json
 import time
 from contextlib import contextmanager
 
-from tg2cloud.domain.classification import safe_directory
+from tg2cloud.domain.classification import (
+    MANUAL_MEDIA,
+    media_directories,
+    safe_directory,
+)
 from tg2cloud.domain.planning import PlanningError, corrected_name, profile
 from tg2cloud.domain.source_directories import (
     CATEGORIES,
@@ -81,15 +85,19 @@ class Plans:
                 if row
                 else {"confirmation": False, "profile": profile()}
             )
+            value.setdefault("auto_classify", False)
             if updates is not None:
                 if not isinstance(updates, dict) or set(updates) - {
                     "confirmation",
                     "profile",
+                    "auto_classify",
                 }:
                     raise PlanningError("未知转存设置")
                 value.update(updates)
                 if type(value["confirmation"]) is not bool:
                     raise PlanningError("确认模式应为布尔值")
+                if type(value["auto_classify"]) is not bool:
+                    raise PlanningError("自动分类应为布尔值")
                 value["profile"] = profile(value["profile"])
                 # Profiles cannot create another route around the directory allowlist.
                 if (
@@ -98,6 +106,8 @@ class Plans:
                     not in self.directories(actor).values()
                 ):
                     raise PlanningError("请选择管理员授权的目录别名")
+                if value["auto_classify"]:
+                    media_directories(value["profile"]["directory"])
                 self.c.execute(
                     "INSERT OR REPLACE INTO transfer_preferences VALUES(?,?)",
                     (actor, json.dumps(value)),
@@ -121,6 +131,15 @@ class Plans:
         if alias not in values:
             raise PlanningError("目录别名不存在或未授权")
         return values[alias]
+
+    def personal_directory(self, actor, preferences):
+        path = preferences["profile"]["directory"]
+        if not path:
+            return "", ()
+        aliases = tuple(alias for alias, directory in self.directories(actor).items() if directory == path)
+        if not aliases:
+            raise PlanningError("保存目录未获授权，请重新选择目录别名")
+        return path, aliases
 
     def set_directory(self, actor, alias, path, owners):
         with self.transaction(actor, admin=True):
@@ -425,7 +444,9 @@ class Plans:
             origin = "alias" if directory is not None else "classification"
             if source_directory is not None:
                 directory, origin = source_directory, "source"
-            if directory is None:
+            if classification_options["classification"] == MANUAL_MEDIA:
+                media_directories(directory or "")
+            elif directory is None:
                 directory = classified_directory(
                     classification_options,
                     now,
@@ -534,6 +555,8 @@ class Plans:
                 data["file_name"] = updated
             if directory_alias is not None:
                 data["directory_override"] = self.directory(actor, directory_alias)
+                if data["classification_options"]["classification"] == MANUAL_MEDIA:
+                    media_directories(data["directory_override"] or "")
                 data["directory_origin"] = "alias"
             self.c.execute(
                 "UPDATE transfer_plans SET payload=?,status=?,revision=revision+1 WHERE id=?",

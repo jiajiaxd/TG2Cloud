@@ -75,7 +75,8 @@ class NamingIngestionEdgeTests(unittest.IsolatedAsyncioTestCase):
         message = self.video(caption="/start")
         message.media = None
         reply = await self.ingest(message)
-        reply.assert_awaited_once_with("existing status", buttons=[["existing buttons"]])
+        reply.assert_awaited_once_with("existing status", buttons=[["existing buttons"]],
+                                       parse_mode="html", link_preview=False)
         self.assertEqual(self.db.list_recent(), [])
 
     async def test_downloadable_document_with_command_caption_keeps_document_name(self):

@@ -16,6 +16,7 @@ from tg2cloud.domain.naming import (
 )
 from tg2cloud.monitoring.notifications import notify_listener_task
 from tg2cloud.storage.rclone import MoveUncertainError
+from tg2cloud.transfer.destination import prepare_media_directories
 
 
 async def _choose_remote_final(self, file_name: str, task_id: int) -> str:
@@ -23,7 +24,10 @@ async def _choose_remote_final(self, file_name: str, task_id: int) -> str:
     task = self.db.get(task_id) or {}
     check_scope(task, self.settings)
     directory = safe_directory(task.get("target_directory", ""))
-    if directory:
+    parent = task.get("classification_parent")
+    if parent is not None:
+        await prepare_media_directories(self.rclone, parent)
+    elif directory:
         await self.rclone.ensure_directory(directory)
     def in_directory(name):
         return directory + "/" + name if directory else name

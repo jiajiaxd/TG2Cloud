@@ -9,6 +9,7 @@ from typing import Any
 from telethon import events
 
 from tg2cloud.domain.actors import current_user, user_event
+from tg2cloud.domain.classification import MANUAL_MEDIA
 from tg2cloud.domain.naming import (
     album_file_name,
     caption_candidate,
@@ -210,8 +211,11 @@ class TelegramHandlers:
         if album_name:
             file_name = album_name
         try:
-            from tg2cloud.telegram.planning import manual
-            if await manual(self, event, message, file_name, created_at=created_at,
+            from tg2cloud.telegram.planning import manual, store
+            prefs = store(self).preferences(event.sender_id)
+            if prefs["auto_classify"]:
+                classification_options = (classification_options or self.db.feature_settings()) | {"classification": MANUAL_MEDIA}
+            if await manual(self, event, message, file_name, prefs, created_at=created_at,
                             classification_options=classification_options):
                 return
             task, created = self.db.create_task(

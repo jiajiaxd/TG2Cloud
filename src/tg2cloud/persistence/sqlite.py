@@ -351,13 +351,13 @@ class TaskDB:
                 if row:
                     self._conn.execute("RELEASE create_task" if nested else "COMMIT")
                     return dict(row), False
-                from tg2cloud.domain.classification import directory, safe_directory
+                from tg2cloud.domain.classification import MANUAL_MEDIA, directory
                 from tg2cloud.persistence.quotas import admit
                 admit(self._conn, sender_id, file_size, now, self.feature_settings()["timezone"])
-                target_directory = directory(classification_options or self.feature_settings(), now, kind=media_kind,
-                                             mime=mime_type, extension=media_extension)
-                if directory_override is not None:
-                    target_directory = safe_directory(directory_override)
+                options = classification_options or self.feature_settings()
+                target_directory = directory(options, now, kind=media_kind, mime=mime_type,
+                                             extension=media_extension, parent=directory_override)
+                classification_parent = (directory_override or "") if options["classification"] == MANUAL_MEDIA else None
                 if read_identity != "bot" and (not read_identity.startswith("listener:") or source_id is None):
                     raise ValueError("读取身份无效")
                 cursor = self._conn.execute(
@@ -365,8 +365,8 @@ class TaskDB:
                     INSERT INTO tasks (
                         chat_id, message_id, sender_id, media_key, file_name,
                         file_size, state, created_at, updated_at, original_file_name,
-                        target_directory, target_base, read_identity, source_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, 'queued', ?, ?, ?, ?, ?, ?, ?)
+                        target_directory, target_base, read_identity, source_id, classification_parent
+                    ) VALUES (?, ?, ?, ?, ?, ?, 'queued', ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         chat_id,
@@ -378,7 +378,7 @@ class TaskDB:
                         now,
                         now,
                         original_file_name,
-                        target_directory, target_base, read_identity, source_id,
+                        target_directory, target_base, read_identity, source_id, classification_parent,
                     ),
                 )
                 row = self._conn.execute(

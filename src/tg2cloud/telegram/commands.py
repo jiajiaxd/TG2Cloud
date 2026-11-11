@@ -94,10 +94,10 @@ class CommandHandlers:
         await event.reply(text)
 
     async def _edit_callback(
-        self, event: Any, text: str, buttons: list[list[Any]]
+        self, event: Any, text: str, buttons: list[list[Any]], **options: Any
     ) -> None:
         try:
-            await event.edit(text, buttons=buttons)
+            await event.edit(text, buttons=buttons, **options)
         except MessageNotModifiedError:
             return
 
@@ -218,7 +218,7 @@ class CommandHandlers:
         if name in {"menu:home", "menu:status", "refresh:home"}:
             await self._refresh_destination_for_dashboard()
             await self._edit_callback(
-                event, self._format_status(), self._user_home_buttons()
+                event, self._format_status(), self._user_home_buttons(), parse_mode="html", link_preview=False,
             )
         elif name in {"vps_resources", "refresh:vps_resources"}:
             self._refresh_resource_snapshot()
@@ -365,8 +365,9 @@ class CommandHandlers:
             if task and task["sender_id"] != actor:
                 await event.reply("没有找到这个任务。")
                 return
-        if command == "/start":
-            await event.reply(self._format_status(), buttons=self._user_home_buttons())
+        if command in {"/start", "/status", "/performance"}:
+            await event.reply(self._format_status(), buttons=self._user_home_buttons(),
+                              parse_mode="html", link_preview=False)
         elif command == "/help":
             await event.reply(self._format_help(admin=actor == self.settings.allowed_user_id))
         elif command == "/quota":
@@ -382,8 +383,6 @@ class CommandHandlers:
                 await event.reply("使用说明\n\n正确格式：/queue [页码]")
             else:
                 await self._reply_queue(event, page)
-        elif command in {"/status", "/performance"}:
-            await event.reply(self._format_status(), buttons=self._user_home_buttons())
         elif command == "/task":
             await self._command_task(event, parts)
         elif command in {"/restart", "/recover"}:
